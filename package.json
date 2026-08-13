@@ -1,0 +1,13 @@
+{
+  "name": "bom-dia-dev",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Painel diário pessoal com dados do GitLab via glab",
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"npm run dev --prefix server\" \"npm run dev --prefix web\"",
+    "docker:up": "docker compose up --build"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.4"
+  }
+}
