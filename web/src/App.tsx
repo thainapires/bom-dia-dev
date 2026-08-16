@@ -46,9 +46,9 @@ function App() {
 
         {data && (
           <>
-            <div className="mt-4">
+            {/* <div className="mt-4">
               <DailySummaryCard narrativa={data.narrativa} />
-            </div>
+            </div> */}
 
             <SummaryCards summary={data.summary} />
 
@@ -60,6 +60,13 @@ function App() {
                 icon={CheckCircle2}
                 iconColorClass="text-status-ready"
               />
+              <MrListCard
+                title="Precisa de atenção"
+                items={data.atencao}
+                emptyText="Nenhum MR precisando de atenção."
+                icon={AlertTriangle}
+                iconColorClass="text-status-attention"
+              />
               <ReviewListCard items={data.precisaRevisar} />
               <MrListCard
                 title="Aguardando review"
@@ -67,13 +74,6 @@ function App() {
                 emptyText="Nenhum MR aguardando review."
                 icon={Clock}
                 iconColorClass="text-status-waiting"
-              />
-              <MrListCard
-                title="Precisa de atenção"
-                items={data.atencao}
-                emptyText="Nenhum MR precisando de atenção."
-                icon={AlertTriangle}
-                iconColorClass="text-status-attention"
               />
             </div>
 

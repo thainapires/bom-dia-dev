@@ -13,7 +13,7 @@ const dotByCategoria: Record<IssueUpdateCategoria, string> = {
 
 export function DailySummaryCard({ narrativa }: { narrativa: DailyNarrative }) {
   return (
-    <div className="rounded-lg bg-card p-4">
+    <div className="rounded-lg bg-card p-4 border-white/5 border">
       <h2 className="text-sm font-semibold text-white/80">
         <span className="mr-2 inline-block h-2 w-2 rounded-full bg-status-neutral" />
         Resumo pra daily

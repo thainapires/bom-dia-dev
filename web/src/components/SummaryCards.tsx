@@ -31,9 +31,9 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
   ];
 
   return (
-    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 ">
       {cards.map((card) => (
-        <div key={card.label} className="rounded-lg bg-card px-4 py-3">
+        <div key={card.label} className="rounded-lg bg-card px-4 py-3 border-white/5 border">
           <p className="flex items-center gap-1.5 text-xs text-white/50 uppercase">
             <card.icon size={17} className={card.color} />
             {card.label}
