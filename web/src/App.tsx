@@ -8,6 +8,9 @@ import { ReviewListCard } from "./components/ReviewListCard";
 import { Sidebar } from "./components/Sidebar";
 import { SummaryCards } from "./components/SummaryCards";
 import { YesterdayList } from "./components/YesterdayList";
+import { ListCardSkeleton } from "./components/skeletons/ListCardSkeleton";
+import { SummaryCardsSkeleton } from "./components/skeletons/SummaryCardsSkeleton";
+import { YesterdayListSkeleton } from "./components/skeletons/YesterdayListSkeleton";
 import type { DashboardResponse } from "./types";
 
 function App() {
@@ -84,7 +87,20 @@ function App() {
         )}
 
         {!data && isLoading && !error && (
-          <p className="mt-6 text-sm text-white/50">Carregando dados do GitLab...</p>
+          <>
+            <SummaryCardsSkeleton />
+
+            <div className="mt-4 flex flex-col gap-4">
+              <ListCardSkeleton />
+              <ListCardSkeleton />
+              <ListCardSkeleton />
+              <ListCardSkeleton />
+            </div>
+
+            <div className="mt-4">
+              <YesterdayListSkeleton />
+            </div>
+          </>
         )}
       </main>
     </div>
