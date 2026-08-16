@@ -61,6 +61,19 @@ export interface DailyNarrative {
   porIssue: IssueNarrativeItem[];
 }
 
+export interface ChecklistItem {
+  id: number;
+  text: string;
+  done: boolean;
+  position: number;
+}
+
+export interface NotesDay {
+  date: string;
+  content: string;
+  checklist: ChecklistItem[];
+}
+
 export interface DashboardResponse {
   user: { name: string };
   summary: {

@@ -1,9 +1,13 @@
 import express from "express";
 import { buildDashboard } from "./dashboard";
 import { GlabError } from "./glab";
+import { notesRouter } from "./routes/notes";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001;
+
+app.use(express.json());
+app.use("/api/notes", notesRouter);
 
 app.get("/api/dashboard", async (req, res) => {
   try {
