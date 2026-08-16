@@ -33,8 +33,15 @@ import type {
 // sinal de que provavelmente foi esquecido, não só que está demorando.
 const DIAS_ESQUECIDO = 5;
 
+const TIMEZONE = "America/Sao_Paulo";
+
 function toDateStr(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 // A API de eventos do GitLab trata `after`/`before` como exclusivos: para
@@ -183,9 +190,6 @@ function mapTodoToItem(todo: GitlabTodo): TodoItem {
   };
 }
 
-// GitLab linka `#123` automaticamente à issue de mesmo iid no mesmo projeto
-// — é o único sinal disponível pra ligar um commit a uma issue específica.
-// Só existe se a convenção de referenciar a issue na mensagem for seguida.
 function issueHasCommit(
   issue: GitlabIssue,
   events: GitlabEvent[],

@@ -1,4 +1,5 @@
 import { RefreshCw } from "lucide-react";
+import { TIMEZONE, getSaoPauloHour } from "../formatting";
 
 const USER_FIRST_NAME = "Thai";
 
@@ -13,6 +14,7 @@ function formattedDate(date: Date): string {
     weekday: "long",
     day: "2-digit",
     month: "long",
+    timeZone: TIMEZONE,
   });
 }
 
@@ -28,7 +30,7 @@ export function Header({ onRefresh, isRefreshing }: HeaderProps) {
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h1 className="text-xl font-semibold text-white sm:text-2xl">
-          {greeting(now.getHours())}, {USER_FIRST_NAME}
+          {greeting(getSaoPauloHour(now))}, {USER_FIRST_NAME}
         </h1>
         <p className="mt-1 text-sm capitalize text-white/50">{formattedDate(now)}</p>
       </div>

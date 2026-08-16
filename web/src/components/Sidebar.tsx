@@ -1,4 +1,10 @@
-import { GitMerge, GitPullRequest, History, LayoutDashboard, Settings } from "lucide-react";
+import { GitMerge, GitPullRequest, History, LayoutDashboard, NotebookPen, Settings } from "lucide-react";
+import { NavLink } from "react-router-dom";
+
+const navItems = [
+  { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/notas", label: "Notas", icon: NotebookPen, end: false },
+];
 
 const inertIcons = [
   { Icon: GitMerge, label: "Merge" },
@@ -10,13 +16,21 @@ const inertIcons = [
 export function Sidebar() {
   return (
     <aside className="sticky top-0 flex h-screen w-14 flex-none flex-col items-center gap-2 self-start border-r border-white/5 bg-card py-4">
-      <button
-        type="button"
-        title="Dashboard"
-        className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-white"
-      >
-        <LayoutDashboard size={20} strokeWidth={1.75} />
-      </button>
+      {navItems.map(({ to, label, icon: Icon, end }) => (
+        <NavLink
+          key={to}
+          to={to}
+          end={end}
+          title={label}
+          className={({ isActive }) =>
+            `flex h-10 w-10 items-center justify-center rounded-lg transition ${
+              isActive ? "bg-white/10 text-white" : "text-white/40 hover:bg-white/5 hover:text-white/70"
+            }`
+          }
+        >
+          <Icon size={20} strokeWidth={1.75} />
+        </NavLink>
+      ))}
       {inertIcons.map(({ Icon, label }) => (
         <button
           key={label}
