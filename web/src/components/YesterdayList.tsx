@@ -5,6 +5,7 @@ import {
   GitPullRequestArrow,
   MessageSquareCheck,
 } from "lucide-react";
+import { TIMEZONE } from "../formatting";
 import type { ActivityItem } from "../types";
 
 const iconByKind: Record<ActivityItem["kind"], typeof GitCommitHorizontal> = {
@@ -16,7 +17,11 @@ const iconByKind: Record<ActivityItem["kind"], typeof GitCommitHorizontal> = {
 };
 
 function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: TIMEZONE,
+  });
 }
 
 export function YesterdayList({ items }: { items: ActivityItem[] }) {
