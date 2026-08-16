@@ -1,3 +1,4 @@
+import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { fetchDashboard } from "./api";
 import { DailySummaryCard } from "./components/DailySummaryCard";
@@ -34,7 +35,7 @@ function App() {
   return (
     <div className="flex min-h-screen bg-bg">
       <Sidebar />
-      <main className="flex-1 px-6 py-5">
+      <main className="min-w-0 flex-1 px-4 py-4 sm:px-6 sm:py-5">
         <Header onRefresh={load} isRefreshing={isLoading} />
 
         {error && (
@@ -51,29 +52,33 @@ function App() {
 
             <SummaryCards summary={data.summary} />
 
-            <div className="mt-4 grid grid-cols-2 gap-4">
+            <div className="mt-4 flex flex-col gap-4">
               <MrListCard
                 title="Pronto pra merge"
                 items={data.pronto}
                 emptyText="Nenhum MR pronto pra merge agora."
-                accentColor="bg-status-ready"
+                icon={CheckCircle2}
+                iconColorClass="text-status-ready"
               />
               <ReviewListCard items={data.precisaRevisar} />
               <MrListCard
                 title="Aguardando review"
                 items={data.aguardando}
                 emptyText="Nenhum MR aguardando review."
-                accentColor="bg-status-waiting"
+                icon={Clock}
+                iconColorClass="text-status-waiting"
               />
               <MrListCard
                 title="Precisa de atenção"
                 items={data.atencao}
                 emptyText="Nenhum MR precisando de atenção."
-                accentColor="bg-status-attention"
+                icon={AlertTriangle}
+                iconColorClass="text-status-attention"
               />
-              <div className="col-span-2">
-                <YesterdayList items={data.ontem} />
-              </div>
+            </div>
+
+            <div className="mt-4">
+              <YesterdayList items={data.ontem} />
             </div>
           </>
         )}

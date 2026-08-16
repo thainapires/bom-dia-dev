@@ -9,7 +9,7 @@ const inertIcons = [
 
 export function Sidebar() {
   return (
-    <aside className="flex h-screen w-14 flex-none flex-col items-center gap-2 border-r border-white/5 bg-card py-4">
+    <aside className="sticky top-0 flex h-screen w-14 flex-none flex-col items-center gap-2 self-start border-r border-white/5 bg-card py-4">
       <button
         type="button"
         title="Dashboard"

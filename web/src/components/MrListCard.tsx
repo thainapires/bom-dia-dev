@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import type { MrItem } from "../types";
 import { MrListItem } from "./MrListItem";
 
@@ -5,14 +6,15 @@ interface MrListCardProps {
   title: string;
   items: MrItem[];
   emptyText: string;
-  accentColor: string;
+  icon: LucideIcon;
+  iconColorClass: string;
 }
 
-export function MrListCard({ title, items, emptyText, accentColor }: MrListCardProps) {
+export function MrListCard({ title, items, emptyText, icon: Icon, iconColorClass }: MrListCardProps) {
   return (
     <div className="rounded-lg bg-card p-4">
-      <h2 className="text-sm font-semibold text-white/80">
-        <span className={`mr-2 inline-block h-2 w-2 rounded-full ${accentColor}`} />
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-white/80 ">
+        <Icon size={16} className={iconColorClass} />
         {title}
       </h2>
       <div className="mt-3 flex max-h-64 flex-col gap-2 overflow-y-auto">

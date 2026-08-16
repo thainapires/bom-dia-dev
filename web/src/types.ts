@@ -9,6 +9,7 @@ export interface MrItem {
   approvals: number;
   diasAberto: number;
   motivoAtencao: string | null;
+  esquecido: boolean;
 }
 
 export interface ReviewItem {
@@ -28,9 +29,36 @@ export interface ActivityItem {
   createdAt: string;
 }
 
+export type IssueUpdateCategoria =
+  | "trabalhando"
+  | "finalizado"
+  | "code_review"
+  | "aguardando_qa"
+  | "testado_ok"
+  | "testado_falhou"
+  | "pausado"
+  | "bloqueado";
+
+export interface IssueNarrativeItem {
+  issueIid: number;
+  projectId: number;
+  title: string;
+  url: string;
+  linha: string;
+  categoria: IssueUpdateCategoria;
+}
+
+export interface TodoItem {
+  id: number;
+  text: string;
+  url: string;
+  createdAt: string;
+}
+
 export interface DailyNarrative {
   ontem: string;
   hoje: string;
+  porIssue: IssueNarrativeItem[];
 }
 
 export interface DashboardResponse {
@@ -41,6 +69,7 @@ export interface DashboardResponse {
     aguardando: number;
     atencao: number;
     tempoMedioMergeDias: string;
+    tempoMedioPrimeiraAprovacaoDias: string;
   };
   pronto: MrItem[];
   precisaRevisar: ReviewItem[];
@@ -48,4 +77,5 @@ export interface DashboardResponse {
   atencao: MrItem[];
   ontem: ActivityItem[];
   narrativa: DailyNarrative;
+  todos: TodoItem[];
 }

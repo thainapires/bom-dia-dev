@@ -25,9 +25,9 @@ export function Header({ onRefresh, isRefreshing }: HeaderProps) {
   const now = new Date();
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-semibold text-white">
+        <h1 className="text-xl font-semibold text-white sm:text-2xl">
           {greeting(now.getHours())}, {USER_FIRST_NAME}
         </h1>
         <p className="mt-1 text-sm capitalize text-white/50">{formattedDate(now)}</p>
@@ -36,7 +36,7 @@ export function Header({ onRefresh, isRefreshing }: HeaderProps) {
         type="button"
         onClick={onRefresh}
         disabled={isRefreshing}
-        className="flex items-center gap-2 rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 disabled:opacity-50"
+        className="flex flex-none items-center gap-2 rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 disabled:opacity-50"
       >
         <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
         Atualizar

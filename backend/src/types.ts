@@ -55,12 +55,27 @@ export interface GitlabIssue {
   iid: number;
   project_id: number;
   title: string;
+  web_url: string;
 }
 
 export interface GitlabNote {
   id: number;
   body: string;
   system: boolean;
+  created_at: string;
+}
+
+export interface GitlabLabelEvent {
+  created_at: string;
+  action: "add" | "remove";
+  label: { name: string } | null;
+}
+
+export interface GitlabTodo {
+  id: number;
+  action_name: string;
+  target_url: string;
+  body: string;
   created_at: string;
 }
 
@@ -75,6 +90,7 @@ export interface MrItem {
   approvals: number;
   diasAberto: number;
   motivoAtencao: string | null;
+  esquecido: boolean;
 }
 
 export interface ReviewItem {
@@ -94,9 +110,49 @@ export interface ActivityItem {
   createdAt: string;
 }
 
+// Categorias que o classificador (heurístico hoje, possivelmente LLM depois)
+// pode atribuir a uma issue com atividade no dia — usadas pra colorir a UI
+// com a mesma paleta de status já usada nos MRs.
+export type IssueUpdateCategoria =
+  | "trabalhando"
+  | "finalizado"
+  | "code_review"
+  | "aguardando_qa"
+  | "testado_ok"
+  | "testado_falhou"
+  | "pausado"
+  | "bloqueado";
+
+export interface IssueDayActivity {
+  issueIid: number;
+  projectId: number;
+  title: string;
+  url: string;
+  hasCommit: boolean;
+  labelChanges: GitlabLabelEvent[];
+  comments: GitlabNote[];
+}
+
+export interface IssueNarrativeItem {
+  issueIid: number;
+  projectId: number;
+  title: string;
+  url: string;
+  linha: string;
+  categoria: IssueUpdateCategoria;
+}
+
+export interface TodoItem {
+  id: number;
+  text: string;
+  url: string;
+  createdAt: string;
+}
+
 export interface DailyNarrative {
   ontem: string;
   hoje: string;
+  porIssue: IssueNarrativeItem[];
 }
 
 export interface DashboardResponse {
@@ -107,6 +163,7 @@ export interface DashboardResponse {
     aguardando: number;
     atencao: number;
     tempoMedioMergeDias: string;
+    tempoMedioPrimeiraAprovacaoDias: string;
   };
   pronto: MrItem[];
   precisaRevisar: ReviewItem[];
@@ -114,4 +171,5 @@ export interface DashboardResponse {
   atencao: MrItem[];
   ontem: ActivityItem[];
   narrativa: DailyNarrative;
+  todos: TodoItem[];
 }

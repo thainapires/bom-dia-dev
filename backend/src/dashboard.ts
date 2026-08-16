@@ -3,12 +3,16 @@ import {
   getAssignedIssues,
   getCurrentUser,
   getEvents,
+  getIssueLabelEvents,
   getIssueNotes,
   getMRDetail,
   getMergedMRs,
+  getMrNotes,
   getMrsToReview,
   getOpenMRs,
+  getTodos,
 } from "./gitlab";
+import { heuristicClassifier } from "./narrative";
 import type {
   ActivityItem,
   DailyNarrative,
@@ -16,10 +20,18 @@ import type {
   GitlabEvent,
   GitlabIssue,
   GitlabMergeRequestSummary,
+  GitlabTodo,
+  IssueDayActivity,
+  IssueNarrativeItem,
   MrItem,
   MrStatus,
   ReviewItem,
+  TodoItem,
 } from "./types";
+
+// MR aguardando/em atenção há mais dias que isso ganha destaque visual —
+// sinal de que provavelmente foi esquecido, não só que está demorando.
+const DIAS_ESQUECIDO = 5;
 
 function toDateStr(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -77,6 +89,7 @@ async function enrichMr(mr: GitlabMergeRequestSummary): Promise<MrItem> {
     approvals: approvalsCount,
     diasAberto,
     motivoAtencao,
+    esquecido: status !== "pronto" && diasAberto > DIAS_ESQUECIDO,
   };
 }
 
@@ -106,21 +119,6 @@ function isAssignmentNoteForUser(note: { system: boolean; body: string }, userna
   return note.system && /^assigned to/i.test(note.body) && note.body.includes(`@${username}`);
 }
 
-async function findAssignmentActivity(
-  issue: GitlabIssue,
-  username: string,
-  range: { after: string; before: string },
-): Promise<ActivityItem[]> {
-  const notes = await getIssueNotes(issue.project_id, issue.iid);
-  return notes
-    .filter((note) => isAssignmentNoteForUser(note, username) && isWithinRange(note.created_at, range))
-    .map((note) => ({
-      kind: "issue" as const,
-      text: `Assumiu: ${issue.title}`,
-      createdAt: note.created_at,
-    }));
-}
-
 function averageMergeTime(merged: GitlabMergeRequestSummary[]): string {
   const withMergeTimes = merged.filter((mr) => mr.merged_at);
   if (withMergeTimes.length === 0) {
@@ -131,6 +129,108 @@ function averageMergeTime(merged: GitlabMergeRequestSummary[]): string {
   }, 0);
   const avg = totalDays / withMergeTimes.length;
   return `${avg.toFixed(1).replace(".", ",")} dias`;
+}
+
+// Não existe campo estruturado de "hora da aprovação" na API de approvals —
+// o jeito confiável é achar a nota de sistema que o GitLab gera ao aprovar.
+async function firstApprovalDate(mr: GitlabMergeRequestSummary): Promise<Date | null> {
+  const notes = await getMrNotes(mr.project_id, mr.iid);
+  const approvalNote = notes.find(
+    (note) => note.system && /approved this merge request/i.test(note.body),
+  );
+  return approvalNote ? new Date(approvalNote.created_at) : null;
+}
+
+function averageFirstApprovalTime(
+  merged: GitlabMergeRequestSummary[],
+  approvalDates: Array<Date | null>,
+): string {
+  const diffsDays = merged
+    .map((mr, index) => {
+      const approvedAt = approvalDates[index];
+      return approvedAt ? daysBetween(new Date(mr.created_at), approvedAt) : null;
+    })
+    .filter((diff): diff is number => diff !== null);
+
+  if (diffsDays.length === 0) {
+    return "sem dados";
+  }
+  const avg = diffsDays.reduce((sum, diff) => sum + diff, 0) / diffsDays.length;
+  return `${avg.toFixed(1).replace(".", ",")} dias`;
+}
+
+const TODO_ACTION_LABELS: Record<string, string> = {
+  assigned: "Atribuíram você",
+  mentioned: "Te mencionaram",
+  review_requested: "Pediram sua revisão",
+  review_submitted: "Revisão enviada",
+  approval_required: "Aprovação necessária",
+  build_failed: "Pipeline falhou",
+  directly_addressed: "Te chamaram diretamente",
+  attention_requested: "Pediram sua atenção",
+  unmergeable: "MR não pode ser mergeado",
+  merge_train_removed: "Removido do merge train",
+};
+
+function mapTodoToItem(todo: GitlabTodo): TodoItem {
+  const prefix = TODO_ACTION_LABELS[todo.action_name] ?? todo.action_name;
+  const text = todo.body ? `${prefix}: ${todo.body}` : prefix;
+  return {
+    id: todo.id,
+    text,
+    url: todo.target_url,
+    createdAt: todo.created_at,
+  };
+}
+
+// GitLab linka `#123` automaticamente à issue de mesmo iid no mesmo projeto
+// — é o único sinal disponível pra ligar um commit a uma issue específica.
+// Só existe se a convenção de referenciar a issue na mensagem for seguida.
+function issueHasCommit(
+  issue: GitlabIssue,
+  events: GitlabEvent[],
+  range: { after: string; before: string },
+): boolean {
+  const issueRef = new RegExp(`#${issue.iid}\\b`);
+  return events.some((event) => {
+    if (event.project_id !== issue.project_id) return false;
+    if (event.action_name !== "pushed to" && event.action_name !== "pushed new") return false;
+    if (!isWithinRange(event.created_at, range)) return false;
+    return issueRef.test(event.push_data?.commit_title ?? "");
+  });
+}
+
+async function buildIssueActivity(
+  issue: GitlabIssue,
+  username: string,
+  range: { after: string; before: string },
+): Promise<{ activity: Omit<IssueDayActivity, "hasCommit">; assignmentEvents: ActivityItem[] }> {
+  const [notes, labelEvents] = await Promise.all([
+    getIssueNotes(issue.project_id, issue.iid),
+    getIssueLabelEvents(issue.project_id, issue.iid),
+  ]);
+
+  const notesInRange = notes.filter((note) => isWithinRange(note.created_at, range));
+
+  const assignmentEvents = notesInRange
+    .filter((note) => isAssignmentNoteForUser(note, username))
+    .map((note) => ({
+      kind: "issue" as const,
+      text: `Assumiu: ${issue.title}`,
+      createdAt: note.created_at,
+    }));
+
+  return {
+    activity: {
+      issueIid: issue.iid,
+      projectId: issue.project_id,
+      title: issue.title,
+      url: issue.web_url,
+      labelChanges: labelEvents.filter((change) => isWithinRange(change.created_at, range)),
+      comments: notesInRange.filter((note) => !note.system),
+    },
+    assignmentEvents,
+  };
 }
 
 function mapEventToActivity(event: GitlabEvent): ActivityItem | null {
@@ -235,10 +335,12 @@ function buildResumoHoje(summary: DashboardResponse["summary"]): string {
 function buildNarrativa(
   ontem: ActivityItem[],
   summary: DashboardResponse["summary"],
+  porIssue: IssueNarrativeItem[],
 ): DailyNarrative {
   return {
     ontem: buildResumoOntem(ontem),
     hoje: buildResumoHoje(summary),
+    porIssue,
   };
 }
 
@@ -250,12 +352,13 @@ export async function buildDashboard(
 
   const user = await getCurrentUser();
 
-  const [openMRs, mergedMRs, events, mrsToReviewRaw, assignedIssues] = await Promise.all([
+  const [openMRs, mergedMRs, events, mrsToReviewRaw, assignedIssues, todosRaw] = await Promise.all([
     getOpenMRs(),
     getMergedMRs(10),
     getEvents(range.after, range.before),
     getMrsToReview(user.username),
     getAssignedIssues(user.username),
+    getTodos(),
   ]);
 
   const enrichedMrs = await Promise.all(openMRs.map(enrichMr));
@@ -270,11 +373,17 @@ export async function buildDashboard(
     )
   ).filter((item): item is ReviewItem => item !== null);
 
-  const issueActivity = (
-    await Promise.all(
-      assignedIssues.map((issue) => findAssignmentActivity(issue, user.username, range)),
-    )
-  ).flat();
+  const issueBuilds = await Promise.all(
+    assignedIssues.map((issue) => buildIssueActivity(issue, user.username, range)),
+  );
+  const issueActivity = issueBuilds.flatMap((build) => build.assignmentEvents);
+  const issueDayActivities: IssueDayActivity[] = issueBuilds.map((build, index) => ({
+    ...build.activity,
+    hasCommit: issueHasCommit(assignedIssues[index], events, range),
+  }));
+  const porIssue = await heuristicClassifier(issueDayActivities);
+
+  const approvalDates = await Promise.all(mergedMRs.map(firstApprovalDate));
 
   const ontem = events
     .map(mapEventToActivity)
@@ -288,6 +397,7 @@ export async function buildDashboard(
     aguardando: aguardando.length,
     atencao: atencao.length,
     tempoMedioMergeDias: averageMergeTime(mergedMRs),
+    tempoMedioPrimeiraAprovacaoDias: averageFirstApprovalTime(mergedMRs, approvalDates),
   };
 
   return {
@@ -298,6 +408,7 @@ export async function buildDashboard(
     aguardando,
     atencao,
     ontem,
-    narrativa: buildNarrativa(ontem, summary),
+    narrativa: buildNarrativa(ontem, summary, porIssue),
+    todos: todosRaw.map(mapTodoToItem),
   };
 }

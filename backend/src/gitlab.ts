@@ -3,9 +3,11 @@ import type {
   GitlabApprovals,
   GitlabEvent,
   GitlabIssue,
+  GitlabLabelEvent,
   GitlabMergeRequestDetail,
   GitlabMergeRequestSummary,
   GitlabNote,
+  GitlabTodo,
   GitlabUser,
 } from "./types";
 
@@ -63,4 +65,23 @@ export function getIssueNotes(projectId: number, iid: number): Promise<GitlabNot
   return glabApi<GitlabNote[]>(
     `projects/${projectId}/issues/${iid}/notes?per_page=100&sort=desc&order_by=created_at`,
   );
+}
+
+export function getIssueLabelEvents(
+  projectId: number,
+  iid: number,
+): Promise<GitlabLabelEvent[]> {
+  return glabApi<GitlabLabelEvent[]>(
+    `projects/${projectId}/issues/${iid}/resource_label_events?per_page=100`,
+  );
+}
+
+export function getMrNotes(projectId: number, iid: number): Promise<GitlabNote[]> {
+  return glabApi<GitlabNote[]>(
+    `projects/${projectId}/merge_requests/${iid}/notes?per_page=100&sort=asc&order_by=created_at`,
+  );
+}
+
+export function getTodos(): Promise<GitlabTodo[]> {
+  return glabApi<GitlabTodo[]>("todos?state=pending&per_page=100");
 }

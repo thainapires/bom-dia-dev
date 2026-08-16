@@ -33,10 +33,10 @@ export function YesterdayList({ items }: { items: ActivityItem[] }) {
           items.map((item, index) => {
             const Icon = iconByKind[item.kind];
             return (
-              <div key={index} className="flex items-center gap-2 text-white/70">
+              <div key={index} className="flex min-w-0 items-center gap-2 text-white/70">
                 <Icon size={13} className="flex-none text-white/40" />
                 <span className="flex-none text-white/30">{formatTime(item.createdAt)}</span>
-                <span className="truncate">{item.text}</span>
+                <span className="min-w-0 flex-1 truncate">{item.text}</span>
               </div>
             );
           })

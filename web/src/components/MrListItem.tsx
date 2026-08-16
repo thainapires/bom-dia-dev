@@ -1,5 +1,8 @@
+import { AlertTriangle, Clock, ThumbsUp } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { formatDiasAberto } from "../formatting";
 import type { MrItem } from "../types";
+import { StatusBadge } from "./StatusBadge";
 
 const borderByStatus: Record<MrItem["status"], string> = {
   pronto: "border-l-status-ready",
@@ -7,7 +10,13 @@ const borderByStatus: Record<MrItem["status"], string> = {
   atencao: "border-l-status-attention",
 };
 
-function metadata(mr: MrItem): string {
+const badgeByStatus: Record<MrItem["status"], { icon: LucideIcon; className: string }> = {
+  pronto: { icon: ThumbsUp, className: "bg-status-ready/15 text-status-ready" },
+  aguardando: { icon: Clock, className: "bg-status-waiting/15 text-status-waiting" },
+  atencao: { icon: AlertTriangle, className: "bg-status-attention/15 text-status-attention" },
+};
+
+function metadataText(mr: MrItem): string {
   if (mr.status === "atencao") return mr.motivoAtencao ?? "Precisa de atenção";
   if (mr.status === "pronto") {
     return mr.approvals === 1 ? "1 aprovação" : `${mr.approvals} aprovações`;
@@ -16,18 +25,28 @@ function metadata(mr: MrItem): string {
 }
 
 export function MrListItem({ mr }: { mr: MrItem }) {
+  const badge = badgeByStatus[mr.status];
   return (
     <a
       href={mr.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`block rounded-md border-l-4 bg-white/5 px-3 py-2 transition hover:bg-white/10 ${borderByStatus[mr.status]}`}
+      className={`flex items-center gap-2 rounded-md border-l-4 bg-white/5 px-3 py-2 transition hover:bg-white/10 ${borderByStatus[mr.status]}`}
     >
-      <p className="truncate text-sm text-white/90">{mr.title}</p>
-      <div className="mt-1 flex items-center justify-between gap-2">
-        <span className="truncate font-mono text-xs text-white/40">{mr.branch}</span>
-        <span className="flex-none text-xs text-white/50">{metadata(mr)}</span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          {mr.esquecido && (
+            <AlertTriangle
+              size={13}
+              className="flex-none text-status-attention"
+              aria-label="Aberto há vários dias, pode ter sido esquecido"
+            />
+          )}
+          <p className="truncate text-sm text-white/90">{mr.title}</p>
+        </div>
+        <span className="mt-1 block truncate font-mono text-xs text-white/40">{mr.branch}</span>
       </div>
+      <StatusBadge icon={badge.icon} text={metadataText(mr)} className={badge.className} />
     </a>
   );
 }
