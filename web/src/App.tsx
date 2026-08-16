@@ -8,6 +8,9 @@ import { ReviewListCard } from "./components/ReviewListCard";
 import { Sidebar } from "./components/Sidebar";
 import { SummaryCards } from "./components/SummaryCards";
 import { YesterdayList } from "./components/YesterdayList";
+import { ListCardSkeleton } from "./components/skeletons/ListCardSkeleton";
+import { SummaryCardsSkeleton } from "./components/skeletons/SummaryCardsSkeleton";
+import { YesterdayListSkeleton } from "./components/skeletons/YesterdayListSkeleton";
 import type { DashboardResponse } from "./types";
 
 function App() {
@@ -46,9 +49,9 @@ function App() {
 
         {data && (
           <>
-            <div className="mt-4">
+            {/* <div className="mt-4">
               <DailySummaryCard narrativa={data.narrativa} />
-            </div>
+            </div> */}
 
             <SummaryCards summary={data.summary} />
 
@@ -60,6 +63,13 @@ function App() {
                 icon={CheckCircle2}
                 iconColorClass="text-status-ready"
               />
+              <MrListCard
+                title="Precisa de atenção"
+                items={data.atencao}
+                emptyText="Nenhum MR precisando de atenção."
+                icon={AlertTriangle}
+                iconColorClass="text-status-attention"
+              />
               <ReviewListCard items={data.precisaRevisar} />
               <MrListCard
                 title="Aguardando review"
@@ -67,13 +77,6 @@ function App() {
                 emptyText="Nenhum MR aguardando review."
                 icon={Clock}
                 iconColorClass="text-status-waiting"
-              />
-              <MrListCard
-                title="Precisa de atenção"
-                items={data.atencao}
-                emptyText="Nenhum MR precisando de atenção."
-                icon={AlertTriangle}
-                iconColorClass="text-status-attention"
               />
             </div>
 
@@ -84,7 +87,20 @@ function App() {
         )}
 
         {!data && isLoading && !error && (
-          <p className="mt-6 text-sm text-white/50">Carregando dados do GitLab...</p>
+          <>
+            <SummaryCardsSkeleton />
+
+            <div className="mt-4 flex flex-col gap-4">
+              <ListCardSkeleton />
+              <ListCardSkeleton />
+              <ListCardSkeleton />
+              <ListCardSkeleton />
+            </div>
+
+            <div className="mt-4">
+              <YesterdayListSkeleton />
+            </div>
+          </>
         )}
       </main>
     </div>

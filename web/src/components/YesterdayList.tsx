@@ -21,10 +21,11 @@ function formatTime(iso: string): string {
 
 export function YesterdayList({ items }: { items: ActivityItem[] }) {
   return (
-    <div className="rounded-lg bg-card p-4">
+    <div className="rounded-lg bg-card p-4 border-white/5 border">
       <h2 className="text-sm font-semibold text-white/80">
         <span className="mr-2 inline-block h-2 w-2 rounded-full bg-status-neutral" />
         Ontem você fez
+        <span className="ml-2 text-white/30">{items.length}</span>
       </h2>
       <div className="mt-3 flex max-h-64 flex-col gap-1.5 overflow-y-auto font-mono text-xs">
         {items.length === 0 ? (
