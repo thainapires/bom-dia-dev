@@ -1,19 +1,19 @@
-import {
-  CircleDot,
-  GitCommitHorizontal,
-  GitMerge,
-  GitPullRequestArrow,
-  MessageSquareCheck,
-} from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import DotIcon from "@hugeicons/core-free-icons/DotIcon";
+import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestArrowIcon from "@hugeicons/core-free-icons/GitPullRequestArrowIcon";
+import MessageDone01Icon from "@hugeicons/core-free-icons/MessageDone01Icon";
+import type { IconSvgElement } from "@hugeicons/react";
 import { TIMEZONE } from "../formatting";
 import type { ActivityItem } from "../types";
 
-const iconByKind: Record<ActivityItem["kind"], typeof GitCommitHorizontal> = {
-  commit: GitCommitHorizontal,
-  merge: GitMerge,
-  review: MessageSquareCheck,
-  abertura: GitPullRequestArrow,
-  issue: CircleDot,
+const iconByKind: Record<ActivityItem["kind"], IconSvgElement> = {
+  commit: GitCommitHorizontalIcon,
+  merge: GitMergeIcon,
+  review: MessageDone01Icon,
+  abertura: GitPullRequestArrowIcon,
+  issue: DotIcon,
 };
 
 function formatTime(iso: string): string {
@@ -37,10 +37,10 @@ export function YesterdayList({ items }: { items: ActivityItem[] }) {
           <p className="font-sans text-sm text-white/40">Nenhuma atividade registrada.</p>
         ) : (
           items.map((item, index) => {
-            const Icon = iconByKind[item.kind];
+            const icon = iconByKind[item.kind];
             return (
               <div key={index} className="flex min-w-0 items-center gap-2 text-white/70">
-                <Icon size={13} className="flex-none text-white/40" />
+                <HugeiconsIcon icon={icon} size={13} className="flex-none text-white/40" />
                 <span className="flex-none text-white/30">{formatTime(item.createdAt)}</span>
                 <span className="min-w-0 flex-1 truncate">{item.text}</span>
               </div>

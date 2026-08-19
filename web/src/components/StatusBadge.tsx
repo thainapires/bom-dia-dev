@@ -1,11 +1,12 @@
-import type { LucideIcon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 
 export function StatusBadge({
-  icon: Icon,
+  icon,
   text,
   className,
 }: {
-  icon: LucideIcon;
+  icon: IconSvgElement;
   text: string;
   className: string;
 }) {
@@ -13,7 +14,7 @@ export function StatusBadge({
     <span
       className={`inline-flex flex-none items-center gap-1 rounded-sm px-2 py-1 text-xs font-medium ${className}`}
     >
-      <Icon size={14} />
+      <HugeiconsIcon icon={icon} size={14} />
       {text}
     </span>
   );
