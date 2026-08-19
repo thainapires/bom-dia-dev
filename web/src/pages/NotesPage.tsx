@@ -1,4 +1,10 @@
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import PlusSignIcon from "@hugeicons/core-free-icons/PlusSignIcon";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
@@ -13,6 +19,8 @@ import type { NotesDay } from "../types";
 
 const SAVE_DELAY_MS = 800;
 
+type SaveStatus = "saving" | "saved";
+
 export function NotesPage() {
   const [date, setDate] = useState(() => toISODate(new Date()));
   const [notes, setNotes] = useState<NotesDay | null>(null);
@@ -20,6 +28,7 @@ export function NotesPage() {
   const [newItemText, setNewItemText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -33,6 +42,7 @@ export function NotesPage() {
         if (cancelled) return;
         setNotes(day);
         setContent(day.content);
+        setSaveStatus("saved");
       })
       .catch((err) => {
         if (cancelled) return;
@@ -49,11 +59,14 @@ export function NotesPage() {
 
   const handleContentChange = (value: string) => {
     setContent(value);
+    setSaveStatus("saving");
     if (saveTimeout.current) clearTimeout(saveTimeout.current);
     saveTimeout.current = setTimeout(() => {
-      saveNotes(date, value).catch((err) => {
-        setError(err instanceof Error ? err.message : "Erro ao salvar notas");
-      });
+      saveNotes(date, value)
+        .then(() => setSaveStatus("saved"))
+        .catch((err) => {
+          setError(err instanceof Error ? err.message : "Erro ao salvar notas");
+        });
     }, SAVE_DELAY_MS);
   };
 
@@ -115,7 +128,7 @@ export function NotesPage() {
             title="Dia anterior"
             className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-white/80 transition hover:bg-white/10"
           >
-            <ChevronLeft size={16} />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
           </button>
           {!isToday && (
             <button
@@ -132,7 +145,7 @@ export function NotesPage() {
             title="Próximo dia"
             className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-white/80 transition hover:bg-white/10"
           >
-            <ChevronRight size={16} />
+            <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
           </button>
         </div>
       </div>
@@ -145,7 +158,22 @@ export function NotesPage() {
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="rounded-lg border border-white/5 bg-card p-4">
-          <h2 className="text-sm font-semibold text-white/80">Bloco de notas</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-white/80">Bloco de notas</h2>
+            <div className="flex items-center">
+              {saveStatus === "saving" ? (
+                <>
+                  <HugeiconsIcon icon={Loading03Icon} size={16} className="animate-spin text-white/40" />
+                  <span className="ml-2 text-xs font-semibold text-white/40">Salvando...</span>
+                </>
+              ) : (
+                <>
+                  <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} className="text-status-ready" />
+                  <span className="ml-2 text-xs font-semibold text-status-ready/90">Salvo</span>
+                </>
+              )}
+            </div>
+          </div>
           <textarea
             value={content}
             onChange={(event) => handleContentChange(event.target.value)}
@@ -174,7 +202,7 @@ export function NotesPage() {
               title="Adicionar"
               className="flex flex-none items-center justify-center rounded-md bg-white/10 px-3 py-2 text-white/80 transition hover:bg-white/20"
             >
-              <Plus size={16} />
+              <HugeiconsIcon icon={PlusSignIcon} size={16} />
             </button>
           </form>
 
@@ -219,7 +247,7 @@ export function NotesPage() {
                     title="Remover"
                     className="flex-none text-white/30 transition hover:text-status-attention"
                   >
-                    <Trash2 size={14} />
+                    <HugeiconsIcon icon={Delete02Icon} size={14} />
                   </button>
                 </div>
               ))
