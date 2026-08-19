@@ -15,6 +15,14 @@ export function toISODate(date: Date): string {
   }).format(date);
 }
 
+export function formatHourMinute(iso: string): string {
+  return new Date(iso).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: TIMEZONE,
+  });
+}
+
 export function getSaoPauloHour(date: Date = new Date()): number {
   return Number(
     new Intl.DateTimeFormat("en-US", {

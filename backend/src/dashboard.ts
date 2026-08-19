@@ -442,6 +442,7 @@ export async function buildDashboard(
 
   return {
     user: { name: user.name },
+    atualizadoEm: now.toISOString(),
     summary,
     pronto,
     precisaRevisar,
