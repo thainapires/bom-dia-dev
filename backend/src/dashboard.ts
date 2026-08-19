@@ -7,6 +7,7 @@ import {
   getIssueNotes,
   getMRDetail,
   getMergedMRs,
+  getMrDiscussions,
   getMrNotes,
   getMrsToReview,
   getOpenMRs,
@@ -17,6 +18,7 @@ import type {
   ActivityItem,
   DailyNarrative,
   DashboardResponse,
+  GitlabDiscussion,
   GitlabEvent,
   GitlabIssue,
   GitlabMergeRequestSummary,
@@ -26,6 +28,7 @@ import type {
   MrItem,
   MrStatus,
   ReviewItem,
+  ReviewSituacao,
   TodoItem,
 } from "./types";
 
@@ -100,23 +103,43 @@ async function enrichMr(mr: GitlabMergeRequestSummary): Promise<MrItem> {
   };
 }
 
+// Uma discussão conta como "comentário meu aguardando resposta" quando eu
+// participei dela (autor de alguma nota) e ela ainda tem nota(s) resolvível(is)
+// não resolvida(s) — ou seja, o autor do MR ainda não tratou.
+function hasUnresolvedNoteFromMe(discussions: GitlabDiscussion[], myUserId: number): boolean {
+  return discussions.some((discussion) => {
+    const participatedByMe = discussion.notes.some((note) => note.author.id === myUserId);
+    if (!participatedByMe) return false;
+    return discussion.notes.some((note) => note.resolvable && !note.resolved);
+  });
+}
+
 async function enrichReviewItem(
   mr: GitlabMergeRequestSummary,
   myUserId: number,
-): Promise<ReviewItem | null> {
-  const approvals = await getApprovals(mr.project_id, mr.iid);
+): Promise<{ item: ReviewItem; situacao: ReviewSituacao } | null> {
+  const [approvals, discussions] = await Promise.all([
+    getApprovals(mr.project_id, mr.iid),
+    getMrDiscussions(mr.project_id, mr.iid),
+  ]);
+
   const alreadyApprovedByMe = approvals.approved_by.some((a) => a.user.id === myUserId);
-  if (alreadyApprovedByMe) {
+  const aguardandoResposta = hasUnresolvedNoteFromMe(discussions, myUserId);
+
+  if (alreadyApprovedByMe && !aguardandoResposta) {
     return null;
   }
 
   return {
-    id: mr.id,
-    title: mr.title,
-    branch: mr.source_branch,
-    url: mr.web_url,
-    author: mr.author.name,
-    diasAberto: Math.floor(daysBetween(new Date(mr.created_at), new Date())),
+    item: {
+      id: mr.id,
+      title: mr.title,
+      branch: mr.source_branch,
+      url: mr.web_url,
+      author: mr.author.name,
+      diasAberto: Math.floor(daysBetween(new Date(mr.created_at), new Date())),
+    },
+    situacao: aguardandoResposta ? "aguardandoResposta" : "precisaRevisar",
   };
 }
 
@@ -320,6 +343,11 @@ function buildResumoHoje(summary: DashboardResponse["summary"]): string {
       `${summary.precisaRevisar} ${pluralize(summary.precisaRevisar, "MR esperando", "MRs esperando")} sua revisão`,
     );
   }
+  if (summary.aguardandoResposta > 0) {
+    parts.push(
+      `${summary.aguardandoResposta} ${pluralize(summary.aguardandoResposta, "comentário seu esperando", "comentários seus esperando")} resposta`,
+    );
+  }
   if (summary.aguardando > 0) {
     parts.push(
       `${summary.aguardando} ${pluralize(summary.aguardando, "MR aguardando", "MRs aguardando")} aprovação`,
@@ -371,11 +399,18 @@ export async function buildDashboard(
   const aguardando = enrichedMrs.filter((mr) => mr.status === "aguardando");
   const atencao = enrichedMrs.filter((mr) => mr.status === "atencao");
 
-  const precisaRevisar = (
+  const reviewResults = (
     await Promise.all(
       mrsToReviewRaw.filter((mr) => !mr.draft).map((mr) => enrichReviewItem(mr, user.id)),
     )
-  ).filter((item): item is ReviewItem => item !== null);
+  ).filter((result): result is { item: ReviewItem; situacao: ReviewSituacao } => result !== null);
+
+  const precisaRevisar = reviewResults
+    .filter((result) => result.situacao === "precisaRevisar")
+    .map((result) => result.item);
+  const aguardandoResposta = reviewResults
+    .filter((result) => result.situacao === "aguardandoResposta")
+    .map((result) => result.item);
 
   const issueBuilds = await Promise.all(
     assignedIssues.map((issue) => buildIssueActivity(issue, user.username, range)),
@@ -398,6 +433,7 @@ export async function buildDashboard(
   const summary = {
     pronto: pronto.length,
     precisaRevisar: precisaRevisar.length,
+    aguardandoResposta: aguardandoResposta.length,
     aguardando: aguardando.length,
     atencao: atencao.length,
     tempoMedioMergeDias: averageMergeTime(mergedMRs),
@@ -409,6 +445,7 @@ export async function buildDashboard(
     summary,
     pronto,
     precisaRevisar,
+    aguardandoResposta,
     aguardando,
     atencao,
     ontem,

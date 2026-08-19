@@ -1,6 +1,7 @@
 import { glabApi } from "./glab";
 import type {
   GitlabApprovals,
+  GitlabDiscussion,
   GitlabEvent,
   GitlabIssue,
   GitlabLabelEvent,
@@ -84,4 +85,13 @@ export function getMrNotes(projectId: number, iid: number): Promise<GitlabNote[]
 
 export function getTodos(): Promise<GitlabTodo[]> {
   return glabApi<GitlabTodo[]>("todos?state=pending&per_page=100");
+}
+
+export function getMrDiscussions(
+  projectId: number,
+  iid: number,
+): Promise<GitlabDiscussion[]> {
+  return glabApi<GitlabDiscussion[]>(
+    `projects/${projectId}/merge_requests/${iid}/discussions?per_page=100`,
+  );
 }

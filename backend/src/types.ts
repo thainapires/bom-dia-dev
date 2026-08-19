@@ -79,6 +79,18 @@ export interface GitlabTodo {
   created_at: string;
 }
 
+export interface GitlabDiscussionNote {
+  id: number;
+  author: { id: number };
+  resolvable: boolean;
+  resolved: boolean;
+}
+
+export interface GitlabDiscussion {
+  id: string;
+  notes: GitlabDiscussionNote[];
+}
+
 export type MrStatus = "pronto" | "aguardando" | "atencao";
 
 export interface MrItem {
@@ -101,6 +113,11 @@ export interface ReviewItem {
   author: string;
   diasAberto: number;
 }
+
+// "precisaRevisar": MR aguardando sua primeira revisão.
+// "aguardandoResposta": você já deixou comentário(s) não resolvidos no MR —
+// a bola está com o autor, não precisa revisar de novo ainda.
+export type ReviewSituacao = "precisaRevisar" | "aguardandoResposta";
 
 export type ActivityKind = "commit" | "merge" | "review" | "abertura" | "issue";
 
@@ -173,6 +190,7 @@ export interface DashboardResponse {
   summary: {
     pronto: number;
     precisaRevisar: number;
+    aguardandoResposta: number;
     aguardando: number;
     atencao: number;
     tempoMedioMergeDias: string;
@@ -180,6 +198,7 @@ export interface DashboardResponse {
   };
   pronto: MrItem[];
   precisaRevisar: ReviewItem[];
+  aguardandoResposta: ReviewItem[];
   aguardando: MrItem[];
   atencao: MrItem[];
   ontem: ActivityItem[];

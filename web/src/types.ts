@@ -79,6 +79,7 @@ export interface DashboardResponse {
   summary: {
     pronto: number;
     precisaRevisar: number;
+    aguardandoResposta: number;
     aguardando: number;
     atencao: number;
     tempoMedioMergeDias: string;
@@ -86,6 +87,7 @@ export interface DashboardResponse {
   };
   pronto: MrItem[];
   precisaRevisar: ReviewItem[];
+  aguardandoResposta: ReviewItem[];
   aguardando: MrItem[];
   atencao: MrItem[];
   ontem: ActivityItem[];

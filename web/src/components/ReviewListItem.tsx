@@ -1,15 +1,21 @@
-import { Clock } from "lucide-react";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
 import { formatDiasAberto } from "../formatting";
 import type { ReviewItem } from "../types";
 import { StatusBadge } from "./StatusBadge";
 
-export function ReviewListItem({ mr }: { mr: ReviewItem }) {
+interface ReviewListItemProps {
+  mr: ReviewItem;
+  borderColorClass: string;
+  badgeColorClass: string;
+}
+
+export function ReviewListItem({ mr, borderColorClass, badgeColorClass }: ReviewListItemProps) {
   return (
     <a
       href={mr.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-2 rounded-md border-l-4 border-l-status-waiting bg-white/5 px-3 py-2 transition hover:bg-white/10"
+      className={`flex items-center gap-2 rounded-md border-l-4 bg-white/5 px-3 py-2 transition hover:bg-white/10 ${borderColorClass}`}
     >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm text-white/90">{mr.title}</p>
@@ -18,9 +24,9 @@ export function ReviewListItem({ mr }: { mr: ReviewItem }) {
         </span>
       </div>
       <StatusBadge
-        icon={Clock}
+        icon={Clock01Icon}
         text={formatDiasAberto(mr.diasAberto)}
-        className="bg-status-waiting/15 text-status-waiting"
+        className={badgeColorClass}
       />
     </a>
   );
