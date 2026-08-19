@@ -3,7 +3,7 @@ import PencilEdit01Icon from "@hugeicons/core-free-icons/PencilEdit01Icon";
 import RefreshIcon from "@hugeicons/core-free-icons/RefreshIcon";
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
-import { TIMEZONE, getSaoPauloHour } from "../formatting";
+import { TIMEZONE, formatHourMinute, getSaoPauloHour } from "../formatting";
 import { useSettings } from "../SettingsContext";
 
 function greeting(hour: number): string {
@@ -24,9 +24,10 @@ function formattedDate(date: Date): string {
 interface HeaderProps {
   onRefresh: () => void;
   isRefreshing: boolean;
+  lastUpdated?: string | null;
 }
 
-export function Header({ onRefresh, isRefreshing }: HeaderProps) {
+export function Header({ onRefresh, isRefreshing, lastUpdated }: HeaderProps) {
   const now = new Date();
   const { settings, updateSettings } = useSettings();
   const [isEditing, setIsEditing] = useState(false);
@@ -96,15 +97,20 @@ export function Header({ onRefresh, isRefreshing }: HeaderProps) {
         </h1>
         <p className="mt-1 text-sm capitalize text-white/50">{formattedDate(now)}</p>
       </div>
-      <button
-        type="button"
-        onClick={onRefresh}
-        disabled={isRefreshing}
-        className="flex flex-none items-center gap-2 rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 disabled:opacity-50"
-      >
-        <HugeiconsIcon icon={RefreshIcon} size={16} className={isRefreshing ? "animate-spin" : ""} />
-        Atualizar
-      </button>
+      <div className="flex flex-none flex-col items-end gap-1">
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={isRefreshing}
+          className="flex flex-none items-center gap-2 rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 disabled:opacity-50"
+        >
+          <HugeiconsIcon icon={RefreshIcon} size={16} className={isRefreshing ? "animate-spin" : ""} />
+          Atualizar
+        </button>
+        {lastUpdated && (
+          <span className="text-xs text-white/30">Atualizado às {formatHourMinute(lastUpdated)}</span>
+        )}
+      </div>
     </div>
   );
 }

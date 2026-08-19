@@ -26,11 +26,11 @@ export function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { settings } = useSettings();
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (forceRefresh = false) => {
     setIsLoading(true);
     setError(null);
     try {
-      const dashboard = await fetchDashboard();
+      const dashboard = await fetchDashboard({ forceRefresh });
       setData(dashboard);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao buscar dados");
@@ -47,7 +47,7 @@ export function DashboardPage() {
 
   return (
     <>
-      <Header onRefresh={load} isRefreshing={isLoading} />
+      <Header onRefresh={() => load(true)} isRefreshing={isLoading} lastUpdated={data?.atualizadoEm ?? null} />
 
       {error && (
         <div className="mt-4 rounded-lg border-l-4 border-l-status-attention bg-card px-4 py-3 text-sm text-white/80">

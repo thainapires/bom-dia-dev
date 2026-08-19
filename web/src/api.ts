@@ -1,4 +1,4 @@
-import type { DashboardResponse, NotesDay } from "./types";
+import type { DashboardResponse, NotesDay, WakatimeStats } from "./types";
 
 async function handleJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -8,13 +8,18 @@ async function handleJson<T>(response: Response): Promise<T> {
   return response.json();
 }
 
-export async function fetchDashboard(): Promise<DashboardResponse> {
-  const response = await fetch("/api/dashboard");
+export async function fetchDashboard(options?: { forceRefresh?: boolean }): Promise<DashboardResponse> {
+  const url = options?.forceRefresh ? "/api/dashboard?refresh=true" : "/api/dashboard";
+  const response = await fetch(url);
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.error ?? `Erro ao buscar dados (${response.status})`);
   }
   return response.json();
+}
+
+export function fetchWakatimeStats(): Promise<WakatimeStats> {
+  return fetch("/api/wakatime").then((res) => handleJson<WakatimeStats>(res));
 }
 
 export function fetchNotes(date: string): Promise<NotesDay> {

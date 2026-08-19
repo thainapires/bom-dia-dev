@@ -187,6 +187,7 @@ export interface NotesDay {
 
 export interface DashboardResponse {
   user: { name: string };
+  atualizadoEm: string;
   summary: {
     pronto: number;
     precisaRevisar: number;
@@ -204,4 +205,18 @@ export interface DashboardResponse {
   ontem: ActivityItem[];
   narrativa: DailyNarrative;
   todos: TodoItem[];
+}
+
+export interface WakatimeLanguage {
+  name: string;
+  percent: number;
+  text: string;
+}
+
+export interface WakatimeStats {
+  range: string;
+  totalText: string;
+  dailyAverageText: string;
+  bestDay: { date: string; text: string } | null;
+  languages: WakatimeLanguage[];
 }

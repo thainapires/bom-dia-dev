@@ -5,7 +5,7 @@ import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
 import GitPullRequestArrowIcon from "@hugeicons/core-free-icons/GitPullRequestArrowIcon";
 import MessageDone01Icon from "@hugeicons/core-free-icons/MessageDone01Icon";
 import type { IconSvgElement } from "@hugeicons/react";
-import { TIMEZONE } from "../formatting";
+import { formatHourMinute } from "../formatting";
 import type { ActivityItem } from "../types";
 
 const iconByKind: Record<ActivityItem["kind"], IconSvgElement> = {
@@ -15,14 +15,6 @@ const iconByKind: Record<ActivityItem["kind"], IconSvgElement> = {
   abertura: GitPullRequestArrowIcon,
   issue: DotIcon,
 };
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: TIMEZONE,
-  });
-}
 
 export function YesterdayList({ items }: { items: ActivityItem[] }) {
   return (
@@ -41,7 +33,7 @@ export function YesterdayList({ items }: { items: ActivityItem[] }) {
             return (
               <div key={index} className="flex min-w-0 items-center gap-2 text-white/70">
                 <HugeiconsIcon icon={icon} size={13} className="flex-none text-white/40" />
-                <span className="flex-none text-white/30">{formatTime(item.createdAt)}</span>
+                <span className="flex-none text-white/30">{formatHourMinute(item.createdAt)}</span>
                 <span className="min-w-0 flex-1 truncate">{item.text}</span>
               </div>
             );
