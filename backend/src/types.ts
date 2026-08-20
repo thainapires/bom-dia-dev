@@ -101,6 +101,7 @@ export interface MrItem {
   status: MrStatus;
   approvals: number;
   diasAberto: number;
+  horasAberto: number;
   motivoAtencao: string | null;
   esquecido: boolean;
 }
@@ -112,6 +113,7 @@ export interface ReviewItem {
   url: string;
   author: string;
   diasAberto: number;
+  horasAberto: number;
 }
 
 // "precisaRevisar": MR aguardando sua primeira revisão.

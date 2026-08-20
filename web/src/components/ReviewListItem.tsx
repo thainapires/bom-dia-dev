@@ -25,7 +25,7 @@ export function ReviewListItem({ mr, borderColorClass, badgeColorClass }: Review
       </div>
       <StatusBadge
         icon={Clock01Icon}
-        text={formatDiasAberto(mr.diasAberto)}
+        text={formatDiasAberto(mr.diasAberto, mr.horasAberto)}
         className={badgeColorClass}
       />
     </a>

@@ -24,7 +24,7 @@ function metadataText(mr: MrItem): string {
   if (mr.status === "pronto") {
     return mr.approvals === 1 ? "1 aprovação" : `${mr.approvals} aprovações`;
   }
-  return formatDiasAberto(mr.diasAberto);
+  return formatDiasAberto(mr.diasAberto, mr.horasAberto);
 }
 
 export function MrListItem({ mr }: { mr: MrItem }) {

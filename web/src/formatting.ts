@@ -1,7 +1,10 @@
-export function formatDiasAberto(dias: number): string {
-  if (dias === 0) return "Aberto hoje";
-  if (dias === 1) return "Aberto há 1 dia";
-  return `Aberto há ${dias} dias`;
+export function formatDiasAberto(diasAberto: number, horasAberto: number): string {
+  if (diasAberto === 0) {
+    if (horasAberto === 0) return "Aberto agora";
+    return horasAberto === 1 ? "Aberto há 1h" : `Aberto há ${horasAberto}h`;
+  }
+  if (diasAberto === 1) return "Aberto há 1 dia";
+  return `Aberto há ${diasAberto} dias`;
 }
 
 export const TIMEZONE = "America/Sao_Paulo";

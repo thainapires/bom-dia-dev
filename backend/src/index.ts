@@ -2,6 +2,7 @@ import express from "express";
 import { buildDashboard } from "./dashboard";
 import { GlabError } from "./glab";
 import { notesRouter } from "./routes/notes";
+import { WakatimeError, getWakatimeStats } from "./wakatime";
 import type { DashboardResponse } from "./types";
 
 const app = express();
@@ -35,6 +36,21 @@ app.get("/api/dashboard", async (req, res) => {
   } catch (error) {
     if (error instanceof GlabError) {
       res.status(502).json({ error: error.message, details: error.stderr });
+      return;
+    }
+    const message = error instanceof Error ? error.message : "Erro desconhecido";
+    res.status(500).json({ error: message });
+  }
+});
+
+app.get("/api/wakatime", async (req, res) => {
+  try {
+    const { range } = req.query;
+    const stats = await getWakatimeStats(typeof range === "string" ? range : undefined);
+    res.json(stats);
+  } catch (error) {
+    if (error instanceof WakatimeError) {
+      res.status(502).json({ error: error.message });
       return;
     }
     const message = error instanceof Error ? error.message : "Erro desconhecido";
