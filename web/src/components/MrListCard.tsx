@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import type { IconSvgElement } from "@hugeicons/react";
+import type { IconProps } from "@solar-icons/react";
+import type { ComponentType } from "react";
 import type { MrItem } from "../types";
 import { MrListItem } from "./MrListItem";
 
@@ -7,15 +7,15 @@ interface MrListCardProps {
   title: string;
   items: MrItem[];
   emptyText: string;
-  icon: IconSvgElement;
+  icon: ComponentType<IconProps>;
   iconColorClass: string;
 }
 
-export function MrListCard({ title, items, emptyText, icon, iconColorClass }: MrListCardProps) {
+export function MrListCard({ title, items, emptyText, icon: Icon, iconColorClass }: MrListCardProps) {
   return (
     <div className="rounded-lg bg-card p-4 border-gray-800 border">
       <h2 className={`flex items-center gap-2 text-sm font-semibold text-white/80`}>
-        <HugeiconsIcon icon={icon} size={16} className={iconColorClass} />
+        <Icon size={16} className={iconColorClass} />
         {title}
         <span className="text-white/30">{items.length}</span>
       </h2>

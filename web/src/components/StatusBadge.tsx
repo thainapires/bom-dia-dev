@@ -1,12 +1,12 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import type { IconSvgElement } from "@hugeicons/react";
+import type { IconProps } from "@solar-icons/react";
+import type { ComponentType } from "react";
 
 export function StatusBadge({
-  icon,
+  icon: Icon,
   text,
   className,
 }: {
-  icon: IconSvgElement;
+  icon: ComponentType<IconProps>;
   text: string;
   className: string;
 }) {
@@ -14,7 +14,7 @@ export function StatusBadge({
     <span
       className={`inline-flex flex-none items-center gap-1 rounded-sm px-2 py-1 text-xs font-medium ${className}`}
     >
-      <HugeiconsIcon icon={icon} size={14} />
+      <Icon size={14} />
       {text}
     </span>
   );

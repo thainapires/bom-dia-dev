@@ -1,6 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import PencilEdit01Icon from "@hugeicons/core-free-icons/PencilEdit01Icon";
-import RefreshIcon from "@hugeicons/core-free-icons/RefreshIcon";
+import { Pen2Icon } from "@solar-icons/react/bold-duotone/pen-2";
+import { RefreshIcon } from "@solar-icons/react/bold-duotone/refresh";
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { TIMEZONE, formatHourMinute, getSaoPauloHour } from "../formatting";
@@ -87,8 +86,7 @@ export function Header({ onRefresh, isRefreshing, lastUpdated }: HeaderProps) {
               className="group -mx-1.5 flex items-center gap-1.5 rounded-md px-1.5 py-0.5 transition hover:bg-white/10"
             >
               {settings.displayName}
-              <HugeiconsIcon
-                icon={PencilEdit01Icon}
+              <Pen2Icon
                 size={14}
                 className="text-white/40 opacity-0 transition group-hover:opacity-100"
               />
@@ -102,9 +100,9 @@ export function Header({ onRefresh, isRefreshing, lastUpdated }: HeaderProps) {
           type="button"
           onClick={onRefresh}
           disabled={isRefreshing}
-          className="flex flex-none items-center gap-2 rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 disabled:opacity-50"
+          className="flex flex-none items-center gap-2 rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 disabled:opacity-50 cursor-pointer"
         >
-          <HugeiconsIcon icon={RefreshIcon} size={16} className={isRefreshing ? "animate-spin" : ""} />
+          <RefreshIcon size={16} className={isRefreshing ? "animate-spin" : ""} />
           Atualizar
         </button>
         {lastUpdated && (

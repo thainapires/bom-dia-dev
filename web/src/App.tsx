@@ -3,6 +3,7 @@ import { Layout } from "./components/Layout";
 import { DashboardPage } from "./pages/DashboardPage";
 import { NotesPage } from "./pages/NotesPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { WakatimePage } from "./pages/WakatimePage";
 import { SettingsProvider } from "./SettingsContext";
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/notas" element={<NotesPage />} />
+            <Route path="/wakatime" element={<WakatimePage />} />
             <Route path="/configuracoes" element={<SettingsPage />} />
           </Route>
         </Routes>

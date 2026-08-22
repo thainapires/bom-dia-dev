@@ -60,35 +60,58 @@ function daysBetween(a: Date, b: Date): number {
   return Math.abs(b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24);
 }
 
+// Horas corridas desde a criação, arredondadas pra baixo — base pro texto
+// "aberto há Xh" (quando ainda não completou 24h) e pro "aberto há X dias"
+// (horasAberto / 24) exibidos no frontend.
+function hoursOpen(createdAt: Date, now: Date): number {
+  return Math.floor(daysBetween(createdAt, now) * 24);
+}
+
 function isWithinRange(iso: string, range: { after: string; before: string }): boolean {
   const time = new Date(iso).getTime();
   return time >= new Date(range.after).getTime() && time < new Date(range.before).getTime();
 }
 
+// Uma thread de code review conta como pendente quando tem nota(s)
+// resolvível(is) ainda não resolvida(s) — não importa quem comentou por
+// último, é sinal de code review em aberto no MR do autor.
+function hasUnresolvedComments(discussions: GitlabDiscussion[]): boolean {
+  return discussions.some((discussion) =>
+    discussion.notes.some((note) => note.resolvable && !note.resolved),
+  );
+}
+
 async function enrichMr(mr: GitlabMergeRequestSummary): Promise<MrItem> {
-  const [detail, approvals] = await Promise.all([
+  const [detail, approvals, discussions] = await Promise.all([
     getMRDetail(mr.project_id, mr.iid),
     getApprovals(mr.project_id, mr.iid),
+    getMrDiscussions(mr.project_id, mr.iid),
   ]);
 
   const pipelineStatus = detail.head_pipeline?.status ?? null;
   const pipelineFailed = pipelineStatus === "failed";
   const pipelineSuccess = pipelineStatus === "success";
   const approvalsCount = approvals.approved_by.length;
+  const pendingComments = hasUnresolvedComments(discussions);
 
   let status: MrStatus;
   let motivoAtencao: string | null = null;
 
-  if (pipelineFailed || detail.has_conflicts) {
+  if (pipelineFailed || detail.has_conflicts || pendingComments) {
     status = "atencao";
-    motivoAtencao = pipelineFailed ? "Pipeline falhando" : "Conflito de merge";
+    motivoAtencao = pipelineFailed
+      ? "Pipeline falhando"
+      : detail.has_conflicts
+        ? "Conflito de merge"
+        : "Comentários de code review pendentes";
   } else if (pipelineSuccess && approvalsCount >= 1) {
     status = "pronto";
   } else {
     status = "aguardando";
   }
 
-  const diasAberto = Math.floor(daysBetween(new Date(mr.created_at), new Date()));
+  const horasAberto = hoursOpen(new Date(mr.created_at), new Date());
+  const diasAberto = Math.floor(horasAberto / 24);
 
   return {
     id: mr.id,
@@ -98,6 +121,7 @@ async function enrichMr(mr: GitlabMergeRequestSummary): Promise<MrItem> {
     status,
     approvals: approvalsCount,
     diasAberto,
+    horasAberto,
     motivoAtencao,
     esquecido: status !== "pronto" && diasAberto > DIAS_ESQUECIDO,
   };
@@ -130,6 +154,8 @@ async function enrichReviewItem(
     return null;
   }
 
+  const horasAberto = hoursOpen(new Date(mr.created_at), new Date());
+
   return {
     item: {
       id: mr.id,
@@ -137,7 +163,8 @@ async function enrichReviewItem(
       branch: mr.source_branch,
       url: mr.web_url,
       author: mr.author.name,
-      diasAberto: Math.floor(daysBetween(new Date(mr.created_at), new Date())),
+      diasAberto: Math.floor(horasAberto / 24),
+      horasAberto,
     },
     situacao: aguardandoResposta ? "aguardandoResposta" : "precisaRevisar",
   };

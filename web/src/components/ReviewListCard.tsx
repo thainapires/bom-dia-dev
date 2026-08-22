@@ -1,5 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import type { IconSvgElement } from "@hugeicons/react";
+import type { IconProps } from "@solar-icons/react";
+import type { ComponentType } from "react";
 import type { ReviewItem } from "../types";
 import { ReviewListItem } from "./ReviewListItem";
 
@@ -7,7 +7,7 @@ interface ReviewListCardProps {
   title: string;
   items: ReviewItem[];
   emptyText: string;
-  icon: IconSvgElement;
+  icon: ComponentType<IconProps>;
   iconColorClass: string;
   borderColorClass: string;
   badgeColorClass: string;
@@ -17,7 +17,7 @@ export function ReviewListCard({
   title,
   items,
   emptyText,
-  icon,
+  icon: Icon,
   iconColorClass,
   borderColorClass,
   badgeColorClass,
@@ -25,7 +25,7 @@ export function ReviewListCard({
   return (
     <div className="rounded-lg bg-card p-4 border-white/5 border">
       <h2 className="flex items-center gap-2 text-sm font-semibold text-white/80">
-        <HugeiconsIcon icon={icon} size={16} className={iconColorClass} />
+        <Icon size={16} className={iconColorClass} />
         {title}
         <span className="text-white/30">{items.length}</span>
       </h2>

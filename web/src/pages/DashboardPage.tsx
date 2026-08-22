@@ -1,8 +1,8 @@
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import CheckmarkCircle02Icon from "@hugeicons/core-free-icons/CheckmarkCircle02Icon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
+import { ChatRoundIcon } from "@solar-icons/react/bold-duotone/chat-round";
+import { CheckCircleIcon } from "@solar-icons/react/bold-duotone/check-circle";
+import { ClockCircleIcon } from "@solar-icons/react/bold-duotone/clock-circle";
+import { DangerTriangleIcon } from "@solar-icons/react/bold-duotone/danger-triangle";
+import { EyeIcon } from "@solar-icons/react/bold-duotone/eye";
 import { useCallback, useEffect, useState } from "react";
 import { fetchDashboard } from "../api";
 import { Header } from "../components/Header";
@@ -65,7 +65,7 @@ export function DashboardPage() {
                 title="Pronto pra merge"
                 items={applyEsquecidoThreshold(data.pronto, diasEsquecidoLimite)}
                 emptyText="Nenhum MR pronto pra merge agora."
-                icon={CheckmarkCircle02Icon}
+                icon={CheckCircleIcon}
                 iconColorClass="text-status-ready"
               />
             )}
@@ -74,7 +74,7 @@ export function DashboardPage() {
                 title="Precisa de atenção"
                 items={applyEsquecidoThreshold(data.atencao, diasEsquecidoLimite)}
                 emptyText="Nenhum MR precisando de atenção."
-                icon={Alert01Icon}
+                icon={DangerTriangleIcon}
                 iconColorClass="text-status-attention"
               />
             )}
@@ -83,7 +83,7 @@ export function DashboardPage() {
                 title="Precisa revisar"
                 items={data.precisaRevisar}
                 emptyText="Nenhum MR esperando sua revisão."
-                icon={ViewIcon}
+                icon={EyeIcon}
                 iconColorClass="text-status-waiting"
                 borderColorClass="border-l-status-waiting"
                 badgeColorClass="bg-status-waiting/15 text-status-waiting"
@@ -94,7 +94,7 @@ export function DashboardPage() {
                 title="Aguardando resolução de comentário"
                 items={data.aguardandoResposta}
                 emptyText="Nenhum comentário seu aguardando resposta."
-                icon={BubbleChatIcon}
+                icon={ChatRoundIcon}
                 iconColorClass="text-status-neutral"
                 borderColorClass="border-l-status-neutral"
                 badgeColorClass="bg-status-neutral/15 text-status-neutral"
@@ -105,7 +105,7 @@ export function DashboardPage() {
                 title="Aguardando review"
                 items={applyEsquecidoThreshold(data.aguardando, diasEsquecidoLimite)}
                 emptyText="Nenhum MR aguardando review."
-                icon={Clock01Icon}
+                icon={ClockCircleIcon}
                 iconColorClass="text-status-waiting"
               />
             )}

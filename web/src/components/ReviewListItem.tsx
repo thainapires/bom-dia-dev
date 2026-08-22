@@ -1,4 +1,4 @@
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import { ClockCircleIcon } from "@solar-icons/react/bold-duotone/clock-circle";
 import { formatDiasAberto } from "../formatting";
 import type { ReviewItem } from "../types";
 import { StatusBadge } from "./StatusBadge";
@@ -24,8 +24,8 @@ export function ReviewListItem({ mr, borderColorClass, badgeColorClass }: Review
         </span>
       </div>
       <StatusBadge
-        icon={Clock01Icon}
-        text={formatDiasAberto(mr.diasAberto)}
+        icon={ClockCircleIcon}
+        text={formatDiasAberto(mr.diasAberto, mr.horasAberto)}
         className={badgeColorClass}
       />
     </a>
