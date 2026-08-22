@@ -1,5 +1,4 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import Refresh01Icon from "@hugeicons/core-free-icons/Refresh01Icon";
+import { RefreshIcon } from "@solar-icons/react/bold-duotone/refresh";
 import { useSettings } from "../SettingsContext";
 import type { VisibleCards } from "../settings";
 
@@ -68,7 +67,7 @@ export function SettingsPage() {
             onClick={resetSettings}
             className="mt-6 flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm text-white/80 transition hover:bg-white/20"
           >
-            <HugeiconsIcon icon={Refresh01Icon} size={16} />
+            <RefreshIcon size={16} />
             Restaurar valores padrão
           </button>
         </div>

@@ -1,10 +1,9 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import PlusSignIcon from "@hugeicons/core-free-icons/PlusSignIcon";
+import { AddCircleIcon } from "@solar-icons/react/bold-duotone/add-circle";
+import { ArrowLeftIcon } from "@solar-icons/react/linear/arrow-left";
+import { ArrowRightIcon } from "@solar-icons/react/linear/arrow-right";
+import { CheckCircleIcon } from "@solar-icons/react/bold-duotone/check-circle";
+import { RefreshIcon } from "@solar-icons/react/bold-duotone/refresh";
+import { TrashBinMinimalisticIcon } from "@solar-icons/react/bold-duotone/trash-bin-minimalistic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
@@ -128,7 +127,7 @@ export function NotesPage() {
             title="Dia anterior"
             className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-white/80 transition hover:bg-white/10"
           >
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
+            <ArrowLeftIcon size={16} />
           </button>
           {!isToday && (
             <button
@@ -145,7 +144,7 @@ export function NotesPage() {
             title="Próximo dia"
             className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-white/80 transition hover:bg-white/10"
           >
-            <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
+            <ArrowRightIcon size={16} />
           </button>
         </div>
       </div>
@@ -163,12 +162,12 @@ export function NotesPage() {
             <div className="flex items-center">
               {saveStatus === "saving" ? (
                 <>
-                  <HugeiconsIcon icon={Loading03Icon} size={16} className="animate-spin text-white/40" />
+                  <RefreshIcon size={16} className="animate-spin text-white/40" />
                   <span className="ml-2 text-xs font-semibold text-white/40">Salvando...</span>
                 </>
               ) : (
                 <>
-                  <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} className="text-status-ready" />
+                  <CheckCircleIcon size={16} className="text-status-ready" />
                   <span className="ml-2 text-xs font-semibold text-status-ready/90">Salvo</span>
                 </>
               )}
@@ -202,7 +201,7 @@ export function NotesPage() {
               title="Adicionar"
               className="flex flex-none items-center justify-center rounded-md bg-white/10 px-3 py-2 text-white/80 transition hover:bg-white/20"
             >
-              <HugeiconsIcon icon={PlusSignIcon} size={16} />
+              <AddCircleIcon size={16} />
             </button>
           </form>
 
@@ -247,7 +246,7 @@ export function NotesPage() {
                     title="Remover"
                     className="flex-none text-white/30 transition hover:text-status-attention"
                   >
-                    <HugeiconsIcon icon={Delete02Icon} size={14} />
+                    <TrashBinMinimalisticIcon size={14} />
                   </button>
                 </div>
               ))

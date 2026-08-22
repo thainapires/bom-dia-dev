@@ -1,7 +1,6 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import Award01Icon from "@hugeicons/core-free-icons/Award01Icon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import FlameIcon from "@hugeicons/core-free-icons/FlameIcon";
+import { ClockCircleIcon } from "@solar-icons/react/bold-duotone/clock-circle";
+import { FireIcon } from "@solar-icons/react/bold-duotone/fire";
+import { MedalStarIcon } from "@solar-icons/react/bold-duotone/medal-star";
 import { useCallback, useEffect, useState } from "react";
 import { fetchWakatimeStats } from "../api";
 import { Header } from "../components/Header";
@@ -44,14 +43,14 @@ export function WakatimePage() {
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-lg border border-white/5 bg-card px-4 py-3">
               <p className="flex items-center gap-1.5 text-xs uppercase text-white/50">
-                <HugeiconsIcon icon={Clock01Icon} size={17} className="text-status-ready" />
+                <ClockCircleIcon size={17} className="text-status-ready" />
                 Tempo codando ({data.range})
               </p>
               <p className="mt-1 text-2xl font-semibold text-status-ready">{data.totalText}</p>
             </div>
             <div className="rounded-lg border border-white/5 bg-card px-4 py-3">
               <p className="flex items-center gap-1.5 text-xs uppercase text-white/50">
-                <HugeiconsIcon icon={FlameIcon} size={17} className="text-status-waiting" />
+                <FireIcon size={17} className="text-status-waiting" />
                 Média diária
               </p>
               <p className="mt-1 text-2xl font-semibold text-status-waiting">
@@ -60,7 +59,7 @@ export function WakatimePage() {
             </div>
             <div className="rounded-lg border border-white/5 bg-card px-4 py-3">
               <p className="flex items-center gap-1.5 text-xs uppercase text-white/50">
-                <HugeiconsIcon icon={Award01Icon} size={17} className="text-status-neutral" />
+                <MedalStarIcon size={17} className="text-status-neutral" />
                 Melhor dia
               </p>
               <p className="mt-1 text-2xl font-semibold text-white">
