@@ -4,7 +4,7 @@ export interface VisibleCards {
   precisaRevisar: boolean;
   aguardandoResposta: boolean;
   aguardando: boolean;
-  ontem: boolean;
+  atividadeRecente: boolean;
 }
 
 export interface Settings {
@@ -21,7 +21,7 @@ export const DEFAULT_SETTINGS: Settings = {
     precisaRevisar: true,
     aguardandoResposta: true,
     aguardando: true,
-    ontem: true,
+    atividadeRecente: true,
   },
   diasEsquecidoLimite: 5,
 };

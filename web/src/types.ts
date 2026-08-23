@@ -23,12 +23,35 @@ export interface ReviewItem {
   horasAberto: number;
 }
 
-export type ActivityKind = "commit" | "merge" | "review" | "abertura" | "issue";
+export type ActivityKind =
+  | "commit"
+  | "merge"
+  | "review"
+  | "abertura"
+  | "issue"
+  | "comentario"
+  | "aprovacaoRecebida";
 
 export interface ActivityItem {
   kind: ActivityKind;
   text: string;
   createdAt: string;
+}
+
+export interface DesempenhoSemana {
+  inicio: string;
+  abertos: number;
+  fechados: number;
+  tempoMedioMergeDias: number | null;
+}
+
+export interface Desempenho {
+  periodoDias: number;
+  totalAbertos: number;
+  totalFechados: number;
+  tempoMedioMergeDiasAtual: string;
+  variacaoPercentual: number | null;
+  seriePorSemana: DesempenhoSemana[];
 }
 
 export type IssueUpdateCategoria =
@@ -93,7 +116,8 @@ export interface DashboardResponse {
   aguardandoResposta: ReviewItem[];
   aguardando: MrItem[];
   atencao: MrItem[];
-  ontem: ActivityItem[];
+  atividadeRecente: ActivityItem[];
+  desempenho: Desempenho;
   narrativa: DailyNarrative;
   todos: TodoItem[];
 }

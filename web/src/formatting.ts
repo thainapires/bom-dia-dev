@@ -18,6 +18,17 @@ export function toISODate(date: Date): string {
   }).format(date);
 }
 
+export function formatRelativeDays(iso: string): string {
+  const toUTCDays = (isoDate: string) => {
+    const [year, month, day] = isoDate.split("-").map(Number);
+    return Date.UTC(year, month - 1, day) / (1000 * 60 * 60 * 24);
+  };
+  const diffDays = Math.round(toUTCDays(toISODate(new Date())) - toUTCDays(toISODate(new Date(iso))));
+  if (diffDays <= 0) return "hoje";
+  if (diffDays === 1) return "ontem";
+  return `há ${diffDays} dias`;
+}
+
 export function formatHourMinute(iso: string): string {
   return new Date(iso).toLocaleTimeString("pt-BR", {
     hour: "2-digit",
