@@ -1,5 +1,7 @@
 # bom-dia-dev ☀️
 
+<img width="1440" height="1128" alt="bom-dia-dev-dashboard-mock" src="https://github.com/user-attachments/assets/e995ddd9-5b78-4131-9d15-e88b6af51e27" />
+
 Painel diário pessoal para abrir toda manhã antes de começar a trabalhar.
 Mostra, de forma escaneável, o estado dos seus MRs no GitLab
 (prontos pra merge, aguardando review, precisando de atenção), o tempo médio
