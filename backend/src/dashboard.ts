@@ -7,8 +7,10 @@ import {
   getIssueNotes,
   getMRDetail,
   getMergedMRs,
+  getMergedMRsSince,
   getMrDiscussions,
   getMrNotes,
+  getMrsCreatedSince,
   getMrsToReview,
   getOpenMRs,
   getTodos,
@@ -18,6 +20,9 @@ import type {
   ActivityItem,
   DailyNarrative,
   DashboardResponse,
+  Desempenho,
+  DesempenhoSemana,
+  GitlabApprovals,
   GitlabDiscussion,
   GitlabEvent,
   GitlabIssue,
@@ -56,8 +61,27 @@ function yesterdayRange(now: Date): { after: string; before: string } {
   return { after: toDateStr(twoDaysAgo), before: toDateStr(today) };
 }
 
+// Janela mais ampla usada pela "Atividade recente" e por "Seu desempenho" —
+// diferente da `yesterdayRange` (que continua alimentando só a narrativa de
+// "ontem"/hoje). `before` inclui o dia de hoje por completo (exclusivo do dia
+// seguinte), então days=14 cobre hoje + os 14 dias anteriores.
+function activityRange(now: Date, days: number): { after: string; before: string } {
+  const start = new Date(now);
+  start.setDate(start.getDate() - days);
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return { after: toDateStr(start), before: toDateStr(tomorrow) };
+}
+
 function daysBetween(a: Date, b: Date): number {
   return Math.abs(b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24);
+}
+
+const MESES_PT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+function formatDiaMes(date: Date): string {
+  const [, month, day] = toDateStr(date).split("-").map(Number);
+  return `${day} ${MESES_PT[month - 1]}`;
 }
 
 // Horas corridas desde a criação, arredondadas pra baixo — base pro texto
@@ -81,7 +105,9 @@ function hasUnresolvedComments(discussions: GitlabDiscussion[]): boolean {
   );
 }
 
-async function enrichMr(mr: GitlabMergeRequestSummary): Promise<MrItem> {
+async function enrichMr(
+  mr: GitlabMergeRequestSummary,
+): Promise<{ item: MrItem; approvals: GitlabApprovals }> {
   const [detail, approvals, discussions] = await Promise.all([
     getMRDetail(mr.project_id, mr.iid),
     getApprovals(mr.project_id, mr.iid),
@@ -114,16 +140,19 @@ async function enrichMr(mr: GitlabMergeRequestSummary): Promise<MrItem> {
   const diasAberto = Math.floor(horasAberto / 24);
 
   return {
-    id: mr.id,
-    title: mr.title,
-    branch: mr.source_branch,
-    url: mr.web_url,
-    status,
-    approvals: approvalsCount,
-    diasAberto,
-    horasAberto,
-    motivoAtencao,
-    esquecido: status !== "pronto" && diasAberto > DIAS_ESQUECIDO,
+    item: {
+      id: mr.id,
+      title: mr.title,
+      branch: mr.source_branch,
+      url: mr.web_url,
+      status,
+      approvals: approvalsCount,
+      diasAberto,
+      horasAberto,
+      motivoAtencao,
+      esquecido: status !== "pronto" && diasAberto > DIAS_ESQUECIDO,
+    },
+    approvals,
   };
 }
 
@@ -176,16 +205,23 @@ function isAssignmentNoteForUser(note: { system: boolean; body: string }, userna
   return note.system && /^assigned to/i.test(note.body) && note.body.includes(`@${username}`);
 }
 
-function averageMergeTime(merged: GitlabMergeRequestSummary[]): string {
+function averageMergeDays(merged: GitlabMergeRequestSummary[]): number | null {
   const withMergeTimes = merged.filter((mr) => mr.merged_at);
   if (withMergeTimes.length === 0) {
-    return "sem dados";
+    return null;
   }
   const totalDays = withMergeTimes.reduce((sum, mr) => {
     return sum + daysBetween(new Date(mr.created_at), new Date(mr.merged_at!));
   }, 0);
-  const avg = totalDays / withMergeTimes.length;
-  return `${avg.toFixed(1).replace(".", ",")} dias`;
+  return totalDays / withMergeTimes.length;
+}
+
+function formatDias(dias: number | null): string {
+  return dias === null ? "sem dados" : `${dias.toFixed(1).replace(".", ",")} dias`;
+}
+
+function averageMergeTime(merged: GitlabMergeRequestSummary[]): string {
+  return formatDias(averageMergeDays(merged));
 }
 
 // Não existe campo estruturado de "hora da aprovação" na API de approvals —
@@ -315,9 +351,88 @@ function mapEventToActivity(event: GitlabEvent): ActivityItem | null {
         };
       }
       return null;
+    case "commented on":
+      if (event.note?.noteable_type === "MergeRequest") {
+        return {
+          kind: "comentario",
+          text: event.target_title ?? "Comentário em MR",
+          createdAt: event.created_at,
+        };
+      }
+      return null;
     default:
       return null;
   }
+}
+
+// "/events" só reflete ações que a própria usuária executou — a aprovação
+// de terceiros no MR dela não aparece por lá. Por isso é sintetizada a
+// partir de `approved_by[].approved_at`, que a API de approvals já traz.
+function buildApprovalActivity(
+  authored: Array<{ mr: GitlabMergeRequestSummary; approvals: GitlabApprovals }>,
+  range: { after: string; before: string },
+): ActivityItem[] {
+  return authored.flatMap(({ mr, approvals }) =>
+    approvals.approved_by
+      .filter((approval) => isWithinRange(approval.approved_at, range))
+      .map((approval) => ({
+        kind: "aprovacaoRecebida" as const,
+        text: mr.title,
+        createdAt: approval.approved_at,
+      })),
+  );
+}
+
+function inWindow(iso: string | null, start: Date, end: Date): boolean {
+  if (!iso) return false;
+  const time = new Date(iso).getTime();
+  return time >= start.getTime() && time < end.getTime();
+}
+
+// Janela fixa de 14 dias (v1, sem seletor de período — ver CLAUDE.md/plano).
+// `mrsCriados`/`mrsMergeados` já vêm buscados numa janela de 28 dias (atual +
+// anterior), pra dar só 2 chamadas extras à API em vez de 4.
+function buildDesempenho(
+  mrsCriados: GitlabMergeRequestSummary[],
+  mrsMergeados: GitlabMergeRequestSummary[],
+  now: Date,
+): Desempenho {
+  const periodoDias = 14;
+  const currentStart = new Date(now.getTime() - periodoDias * 24 * 60 * 60 * 1000);
+  const previousStart = new Date(now.getTime() - periodoDias * 2 * 24 * 60 * 60 * 1000);
+  const windowEnd = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+  const criadosAtual = mrsCriados.filter((mr) => inWindow(mr.created_at, currentStart, windowEnd));
+  const mergeadosAtual = mrsMergeados.filter((mr) => inWindow(mr.merged_at, currentStart, windowEnd));
+  const mergeadosAnterior = mrsMergeados.filter((mr) => inWindow(mr.merged_at, previousStart, currentStart));
+
+  const tempoMedioAtualDias = averageMergeDays(mergeadosAtual);
+  const tempoMedioAnteriorDias = averageMergeDays(mergeadosAnterior);
+  const variacaoPercentual =
+    tempoMedioAtualDias !== null && tempoMedioAnteriorDias !== null && tempoMedioAnteriorDias > 0
+      ? Math.round(((tempoMedioAnteriorDias - tempoMedioAtualDias) / tempoMedioAnteriorDias) * 100)
+      : null;
+
+  const seriePorSemana: DesempenhoSemana[] = [0, 1].map((semanaIndex) => {
+    const inicio = new Date(currentStart.getTime() + semanaIndex * 7 * 24 * 60 * 60 * 1000);
+    const fim = new Date(inicio.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const fechadosSemana = mergeadosAtual.filter((mr) => inWindow(mr.merged_at, inicio, fim));
+    return {
+      inicio: formatDiaMes(inicio),
+      abertos: criadosAtual.filter((mr) => inWindow(mr.created_at, inicio, fim)).length,
+      fechados: fechadosSemana.length,
+      tempoMedioMergeDias: averageMergeDays(fechadosSemana),
+    };
+  });
+
+  return {
+    periodoDias,
+    totalAbertos: criadosAtual.length,
+    totalFechados: mergeadosAtual.length,
+    tempoMedioMergeDiasAtual: formatDias(tempoMedioAtualDias),
+    variacaoPercentual,
+    seriePorSemana,
+  };
 }
 
 function pluralize(count: number, singular: string, plural: string): string {
@@ -331,7 +446,7 @@ function joinPtBr(parts: string[]): string {
 }
 
 function buildResumoOntem(ontem: ActivityItem[]): string {
-  const counts = { commit: 0, merge: 0, review: 0, abertura: 0, issue: 0 };
+  const counts = { commit: 0, merge: 0, review: 0, abertura: 0, issue: 0, comentario: 0, aprovacaoRecebida: 0 };
   for (const item of ontem) {
     counts[item.kind]++;
   }
@@ -408,19 +523,38 @@ export async function buildDashboard(
 ): Promise<DashboardResponse> {
   const now = new Date();
   const range = dateRange ?? yesterdayRange(now);
+  // "Atividade recente" e "Seu desempenho" usam uma janela própria de 14/28
+  // dias, independente de `range` (que continua só alimentando a narrativa
+  // de ontem/hoje e a classificação de atividade por issue).
+  const activityWindow = activityRange(now, 14);
+  const performanceWindowStart = toDateStr(new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000));
 
   const user = await getCurrentUser();
 
-  const [openMRs, mergedMRs, events, mrsToReviewRaw, assignedIssues, todosRaw] = await Promise.all([
+  const [
+    openMRs,
+    mergedMRs,
+    events,
+    recentEvents,
+    mrsToReviewRaw,
+    assignedIssues,
+    todosRaw,
+    mrsCriados28d,
+    mrsMergeados28d,
+  ] = await Promise.all([
     getOpenMRs(),
     getMergedMRs(10),
     getEvents(range.after, range.before),
+    getEvents(activityWindow.after, activityWindow.before),
     getMrsToReview(user.username),
     getAssignedIssues(user.username),
     getTodos(),
+    getMrsCreatedSince(performanceWindowStart),
+    getMergedMRsSince(performanceWindowStart),
   ]);
 
-  const enrichedMrs = await Promise.all(openMRs.map(enrichMr));
+  const enrichedResults = await Promise.all(openMRs.map(enrichMr));
+  const enrichedMrs = enrichedResults.map((result) => result.item);
 
   const pronto = enrichedMrs.filter((mr) => mr.status === "pronto");
   const aguardando = enrichedMrs.filter((mr) => mr.status === "aguardando");
@@ -457,6 +591,27 @@ export async function buildDashboard(
     .concat(issueActivity)
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
+  // MRs autorados pela usuária cujas aprovações podem ter caído dentro da
+  // janela de atividade recente: os já abertos (aproveita o `getApprovals`
+  // que `enrichMr` já buscou) + os mergeados recentemente (busca extra,
+  // mesmo padrão de fetch em paralelo).
+  const mergeadosRecentesAprovacoes = await Promise.all(
+    mrsMergeados28d.map((mr) => getApprovals(mr.project_id, mr.iid)),
+  );
+  const autoradosComAprovacoes = [
+    ...openMRs.map((mr, index) => ({ mr, approvals: enrichedResults[index].approvals })),
+    ...mrsMergeados28d.map((mr, index) => ({ mr, approvals: mergeadosRecentesAprovacoes[index] })),
+  ];
+
+  const atividadeRecente = recentEvents
+    .map(mapEventToActivity)
+    .filter((item): item is ActivityItem => item !== null)
+    .concat(buildApprovalActivity(autoradosComAprovacoes, activityWindow))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, 20);
+
+  const desempenho = buildDesempenho(mrsCriados28d, mrsMergeados28d, now);
+
   const summary = {
     pronto: pronto.length,
     precisaRevisar: precisaRevisar.length,
@@ -476,7 +631,8 @@ export async function buildDashboard(
     aguardandoResposta,
     aguardando,
     atencao,
-    ontem,
+    atividadeRecente,
+    desempenho,
     narrativa: buildNarrativa(ontem, summary, porIssue),
     todos: todosRaw.map(mapTodoToItem),
   };

@@ -31,7 +31,7 @@ export interface GitlabMergeRequestDetail {
 
 export interface GitlabApprovals {
   approved: boolean;
-  approved_by: Array<{ user: GitlabUser }>;
+  approved_by: Array<{ user: GitlabUser; approved_at: string }>;
   approvals_left: number;
 }
 
@@ -48,6 +48,7 @@ export interface GitlabEvent {
   target_title: string | null;
   created_at: string;
   push_data?: GitlabPushData;
+  note?: { noteable_type: string };
 }
 
 export interface GitlabIssue {
@@ -121,7 +122,14 @@ export interface ReviewItem {
 // a bola está com o autor, não precisa revisar de novo ainda.
 export type ReviewSituacao = "precisaRevisar" | "aguardandoResposta";
 
-export type ActivityKind = "commit" | "merge" | "review" | "abertura" | "issue";
+export type ActivityKind =
+  | "commit"
+  | "merge"
+  | "review"
+  | "abertura"
+  | "issue"
+  | "comentario"
+  | "aprovacaoRecebida";
 
 export interface ActivityItem {
   kind: ActivityKind;
@@ -174,6 +182,26 @@ export interface DailyNarrative {
   porIssue: IssueNarrativeItem[];
 }
 
+export interface DesempenhoSemana {
+  inicio: string;
+  abertos: number;
+  fechados: number;
+  tempoMedioMergeDias: number | null;
+}
+
+// Métricas de "Seu desempenho" no dashboard — janela fixa de 14 dias (v1,
+// sem seletor de período). `variacaoPercentual` compara o tempo médio até
+// merge do período atual com os 14 dias imediatamente anteriores; fica
+// `null` quando não há MRs mergeados no período anterior pra comparar.
+export interface Desempenho {
+  periodoDias: number;
+  totalAbertos: number;
+  totalFechados: number;
+  tempoMedioMergeDiasAtual: string;
+  variacaoPercentual: number | null;
+  seriePorSemana: DesempenhoSemana[];
+}
+
 export interface ChecklistItem {
   id: number;
   text: string;
@@ -204,7 +232,8 @@ export interface DashboardResponse {
   aguardandoResposta: ReviewItem[];
   aguardando: MrItem[];
   atencao: MrItem[];
-  ontem: ActivityItem[];
+  atividadeRecente: ActivityItem[];
+  desempenho: Desempenho;
   narrativa: DailyNarrative;
   todos: TodoItem[];
 }

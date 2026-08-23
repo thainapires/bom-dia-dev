@@ -1,20 +1,23 @@
-import { ChatRoundIcon } from "@solar-icons/react/bold-duotone/chat-round";
-import { CheckCircleIcon } from "@solar-icons/react/bold-duotone/check-circle";
-import { ClockCircleIcon } from "@solar-icons/react/bold-duotone/clock-circle";
-import { DangerTriangleIcon } from "@solar-icons/react/bold-duotone/danger-triangle";
-import { EyeIcon } from "@solar-icons/react/bold-duotone/eye";
+import { ClockCircleIcon as ClockCircleLinear } from '@solar-icons/react/linear/clock-circle'
+import { RestartIcon } from '@solar-icons/react/linear/restart'
+import { BellIcon } from '@solar-icons/react/linear/bell'
+import { DangerTriangleIcon } from '@solar-icons/react/linear/danger-triangle'
 import { useCallback, useEffect, useState } from "react";
 import { fetchDashboard } from "../api";
 import { Header } from "../components/Header";
 import { MrListCard } from "../components/MrListCard";
+import { PerformanceCard } from "../components/PerformanceCard";
+import { RecentActivityCard } from "../components/RecentActivityCard";
 import { ReviewListCard } from "../components/ReviewListCard";
 import { SummaryCards } from "../components/SummaryCards";
-import { YesterdayList } from "../components/YesterdayList";
 import { ListCardSkeleton } from "../components/skeletons/ListCardSkeleton";
+import { PerformanceCardSkeleton } from "../components/skeletons/PerformanceCardSkeleton";
+import { RecentActivityCardSkeleton } from "../components/skeletons/RecentActivityCardSkeleton";
+import { Skeleton } from "../components/skeletons/Skeleton";
 import { SummaryCardsSkeleton } from "../components/skeletons/SummaryCardsSkeleton";
-import { YesterdayListSkeleton } from "../components/skeletons/YesterdayListSkeleton";
 import { useSettings } from "../SettingsContext";
 import type { DashboardResponse, MrItem } from "../types";
+import { CheckCircleIcon } from '@solar-icons/react/linear/check-circle'
 
 function applyEsquecidoThreshold(items: MrItem[], limite: number): MrItem[] {
   return items.map((item) => ({ ...item, esquecido: item.diasAberto >= limite }));
@@ -59,63 +62,72 @@ export function DashboardPage() {
         <>
           <SummaryCards summary={data.summary} />
 
-          <div className="mt-4 flex flex-col gap-4">
-            {visibleCards.pronto && (
-              <MrListCard
-                title="Pronto pra merge"
-                items={applyEsquecidoThreshold(data.pronto, diasEsquecidoLimite)}
-                emptyText="Nenhum MR pronto pra merge agora."
-                icon={CheckCircleIcon}
-                iconColorClass="text-status-ready"
-              />
-            )}
-            {visibleCards.atencao && (
-              <MrListCard
-                title="Precisa de atenção"
-                items={applyEsquecidoThreshold(data.atencao, diasEsquecidoLimite)}
-                emptyText="Nenhum MR precisando de atenção."
-                icon={DangerTriangleIcon}
-                iconColorClass="text-status-attention"
-              />
-            )}
-            {visibleCards.precisaRevisar && (
-              <ReviewListCard
-                title="Precisa revisar"
-                items={data.precisaRevisar}
-                emptyText="Nenhum MR esperando sua revisão."
-                icon={EyeIcon}
-                iconColorClass="text-status-waiting"
-                borderColorClass="border-l-status-waiting"
-                badgeColorClass="bg-status-waiting/15 text-status-waiting"
-              />
-            )}
-            {visibleCards.aguardandoResposta && (
-              <ReviewListCard
-                title="Aguardando resolução de comentário"
-                items={data.aguardandoResposta}
-                emptyText="Nenhum comentário seu aguardando resposta."
-                icon={ChatRoundIcon}
-                iconColorClass="text-status-neutral"
-                borderColorClass="border-l-status-neutral"
-                badgeColorClass="bg-status-neutral/15 text-status-neutral"
-              />
-            )}
-            {visibleCards.aguardando && (
-              <MrListCard
-                title="Aguardando review"
-                items={applyEsquecidoThreshold(data.aguardando, diasEsquecidoLimite)}
-                emptyText="Nenhum MR aguardando review."
-                icon={ClockCircleIcon}
-                iconColorClass="text-status-waiting"
-              />
-            )}
-          </div>
-
-          {visibleCards.ontem && (
-            <div className="mt-4">
-              <YesterdayList items={data.ontem} />
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
+            <div className="bg-card-main border-white/5 flex min-w-0 flex-col gap-4 rounded-lg border p-5 lg:col-span-3">
+              <h2 className="text-lg font-bold">Visão geral</h2>
+              <div className="flex flex-col gap-4">
+                {visibleCards.pronto && (
+                  <MrListCard
+                    title="Pronto pra merge"
+                    items={applyEsquecidoThreshold(data.pronto, diasEsquecidoLimite)}
+                    emptyText="Nenhum MR pronto pra merge agora."
+                    icon={CheckCircleIcon}
+                    iconColorClass="text-status-ready"
+                    iconBgClass="bg-status-ready/20"
+                  />
+                )}
+                {visibleCards.atencao && (
+                  <MrListCard
+                    title="Precisa de atenção"
+                    items={applyEsquecidoThreshold(data.atencao, diasEsquecidoLimite)}
+                    emptyText="Nenhum MR precisando de atenção."
+                    icon={DangerTriangleIcon}
+                    iconColorClass="text-status-attention"
+                    iconBgClass="bg-status-attention/20"
+                  />
+                )}
+                {visibleCards.precisaRevisar && (
+                  <ReviewListCard
+                    title="Precisa revisar"
+                    items={data.precisaRevisar}
+                    emptyText="Nenhum MR esperando sua revisão."
+                    icon={RestartIcon}
+                    iconColorClass="text-status-waiting"
+                    iconBgClass="bg-status-waiting/20"
+                    borderColorClass="border-l-status-waiting"
+                    badgeColorClass="bg-status-waiting/15 text-status-waiting"
+                  />
+                )}
+                {visibleCards.aguardandoResposta && (
+                  <ReviewListCard
+                    title="Aguardando resolução de comentário"
+                    items={data.aguardandoResposta}
+                    emptyText="Nenhum comentário seu aguardando resposta."
+                    icon={ClockCircleLinear}
+                    iconColorClass="text-status-neutral"
+                    iconBgClass="bg-status-neutral/20"
+                    borderColorClass="border-l-status-neutral"
+                    badgeColorClass="bg-status-neutral/15 text-status-neutral"
+                  />
+                )}
+                {visibleCards.aguardando && (
+                  <MrListCard
+                    title="Aguardando review"
+                    items={applyEsquecidoThreshold(data.aguardando, diasEsquecidoLimite)}
+                    emptyText="Nenhum MR aguardando review."
+                    icon={BellIcon}
+                    iconColorClass="text-status-waiting"
+                    iconBgClass="bg-status-waiting/20"
+                  />
+                )}
+              </div>
             </div>
-          )}
+
+            <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
+              {visibleCards.atividadeRecente && <RecentActivityCard items={data.atividadeRecente} />}
+              <PerformanceCard desempenho={data.desempenho} />
+            </div>
+          </div>
         </>
       )}
 
@@ -123,16 +135,22 @@ export function DashboardPage() {
         <>
           <SummaryCardsSkeleton />
 
-          <div className="mt-4 flex flex-col gap-4">
-            <ListCardSkeleton />
-            <ListCardSkeleton />
-            <ListCardSkeleton />
-            <ListCardSkeleton />
-            <ListCardSkeleton />
-          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
+            <div className="bg-card-main border-white/5 flex min-w-0 flex-col gap-4 rounded-lg border p-5 lg:col-span-3">
+              <Skeleton className="h-5 w-32" />
+              <div className="flex flex-col gap-4">
+                <ListCardSkeleton />
+                <ListCardSkeleton />
+                <ListCardSkeleton />
+                <ListCardSkeleton />
+                <ListCardSkeleton />
+              </div>
+            </div>
 
-          <div className="mt-4">
-            <YesterdayListSkeleton />
+            <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
+              <RecentActivityCardSkeleton />
+              <PerformanceCardSkeleton />
+            </div>
           </div>
         </>
       )}

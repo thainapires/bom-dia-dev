@@ -8,7 +8,7 @@ const CARD_LABELS: Record<keyof VisibleCards, string> = {
   precisaRevisar: "Precisa revisar",
   aguardandoResposta: "Aguardando resolução de comentário",
   aguardando: "Aguardando review",
-  ontem: "Ontem você fez",
+  atividadeRecente: "Atividade recente",
 };
 
 export function SettingsPage() {

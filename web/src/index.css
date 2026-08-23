@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #14171c;
-  --color-card: #1c2027;
+  --color-bg: #0e151f;
+  --color-card: #19232F;
   --color-status-ready: #7fb069;
   --color-status-waiting: #e0a458;
-  --color-status-attention: #e24b4a;
+  --color-status-attention: #ED6081;
   --color-status-neutral: #6b7280;
+  --color-card-main: #131B27;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
