@@ -59,7 +59,7 @@ export function DashboardPage() {
       )}
 
       {data && (
-        <>
+        <div className="opacity-100 transition-opacity duration-300 ease-(--ease-out) starting:opacity-0">
           <SummaryCards summary={data.summary} />
 
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
@@ -153,7 +153,7 @@ export function DashboardPage() {
               <PerformanceCard desempenho={data.desempenho} />
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {!data && isLoading && !error && (

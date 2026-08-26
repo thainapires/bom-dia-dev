@@ -89,7 +89,7 @@ export function WakatimePage() {
         </label>
 
         {range === "custom" && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 opacity-100 transition-opacity duration-150 ease-(--ease-out) starting:opacity-0">
             <input
               type="date"
               value={customStart}
@@ -128,7 +128,7 @@ export function WakatimePage() {
       )}
 
       {data && (
-        <>
+        <div className="opacity-100 transition-opacity duration-300 ease-(--ease-out) starting:opacity-0">
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-lg border border-white/5 bg-card px-4 py-3">
               <p className="flex items-center gap-1.5 text-xs uppercase text-white/50">
@@ -180,7 +180,7 @@ export function WakatimePage() {
               )}
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {!data && isLoading && !error && (

@@ -57,7 +57,7 @@ export function DailyPage() {
               value={dates.includes(date) ? date : ""}
               onChange={(event) => event.target.value && setDate(event.target.value)}
               title="Ver daily de outro dia"
-              className="rounded-lg border-0 bg-card px-3 py-2 text-sm text-white/80 outline-none transition hover:bg-white/10"
+              className="rounded-lg border-0 bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
             >
               <option value="" disabled>
                 Histórico
@@ -73,7 +73,7 @@ export function DailyPage() {
             type="button"
             onClick={() => setDate((current) => addDays(current, -1))}
             title="Dia anterior"
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-white/80 transition hover:bg-white/10"
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-white/80 transition hover:bg-white/10 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
           >
             <ArrowLeftIcon size={16} />
           </button>
@@ -81,7 +81,7 @@ export function DailyPage() {
             <button
               type="button"
               onClick={() => setDate(toISODate(new Date()))}
-              className="rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10"
+              className="rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
             >
               Hoje
             </button>
@@ -91,7 +91,7 @@ export function DailyPage() {
             onClick={() => setDate((current) => addDays(current, 1))}
             title="Próximo dia"
             disabled={isToday}
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-white/80 transition hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-card"
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-white/80 transition hover:bg-white/10 active:scale-[0.97] disabled:opacity-30 disabled:hover:bg-card disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
           >
             <ArrowRightIcon size={16} />
           </button>
@@ -112,7 +112,11 @@ export function DailyPage() {
         </div>
       )}
 
-      {!error && !isLoading && entry && <DailySummaryCard entry={entry} />}
+      {!error && !isLoading && entry && (
+        <div className="opacity-100 transition-opacity duration-200 ease-(--ease-out) starting:opacity-0">
+          <DailySummaryCard entry={entry} />
+        </div>
+      )}
 
       {!error && !isLoading && !entry && (
         <div className="mt-4 rounded-lg border border-white/5 bg-card p-5 text-sm text-white/40">

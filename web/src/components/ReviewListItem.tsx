@@ -15,7 +15,7 @@ export function ReviewListItem({ mr, borderColorClass, badgeColorClass }: Review
       href={mr.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`flex items-center gap-2 rounded-md border-l-4 bg-white/5 px-3 py-2 transition hover:bg-white/10 ${borderColorClass}`}
+      className={`flex items-center gap-2 rounded-md border-l-4 bg-white/5 px-3 py-2 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${borderColorClass}`}
     >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm text-white/90">{mr.title}</p>

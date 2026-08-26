@@ -28,18 +28,18 @@ export function DailySummaryCard({ entry }: { entry: DailyEntry }) {
         <button
           type="button"
           onClick={handleCopy}
-          className="flex flex-none items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-1.5 text-xs text-white/70 transition hover:bg-white/10 hover:text-white"
+          className="flex flex-none items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-1.5 text-xs text-white/70 transition hover:bg-white/10 hover:text-white active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           {copied ? (
-            <>
+            <span className="flex items-center gap-1.5 opacity-100 transition-opacity duration-150 ease-(--ease-out) starting:opacity-0">
               <CheckCircleIcon size={14} className="text-status-ready" />
               Copiado
-            </>
+            </span>
           ) : (
-            <>
+            <span className="flex items-center gap-1.5 opacity-100 transition-opacity duration-150 ease-(--ease-out) starting:opacity-0">
               <CopyIcon size={14} />
               Copiar
-            </>
+            </span>
           )}
         </button>
       </div>

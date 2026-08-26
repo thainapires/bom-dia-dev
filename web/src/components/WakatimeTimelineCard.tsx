@@ -114,7 +114,7 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
           <button
             type="button"
             onClick={() => onDateChange(addDays(timeline.date, -1))}
-            className="rounded p-1 hover:bg-white/10 hover:text-white"
+            className="rounded p-1 transition hover:bg-white/10 hover:text-white active:scale-[0.9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
             title="Dia anterior"
           >
             <AltArrowLeftIcon size={13} />
@@ -126,7 +126,7 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
             type="button"
             onClick={() => onDateChange(addDays(timeline.date, 1))}
             disabled={isToday}
-            className="rounded p-1 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+            className="rounded p-1 transition hover:bg-white/10 hover:text-white active:scale-[0.9] disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
             title="Próximo dia"
           >
             <AltArrowRightIcon size={13} />
