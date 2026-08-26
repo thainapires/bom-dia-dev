@@ -2,8 +2,10 @@ export interface VisibleCards {
   pronto: boolean;
   atencao: boolean;
   precisaRevisar: boolean;
-  aguardandoResposta: boolean;
+  aguardandoRespostaMeus: boolean;
+  aguardandoRespostaOutros: boolean;
   aguardando: boolean;
+  jaAprovado: boolean;
   atividadeRecente: boolean;
 }
 
@@ -19,8 +21,10 @@ export const DEFAULT_SETTINGS: Settings = {
     pronto: true,
     atencao: true,
     precisaRevisar: true,
-    aguardandoResposta: true,
+    aguardandoRespostaMeus: true,
+    aguardandoRespostaOutros: true,
     aguardando: true,
+    jaAprovado: true,
     atividadeRecente: true,
   },
   diasEsquecidoLimite: 5,

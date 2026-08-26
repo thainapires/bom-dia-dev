@@ -4,6 +4,7 @@ import { NotesIcon } from "@solar-icons/react/bold-duotone/notes";
 import { PulseIcon } from "@solar-icons/react/bold-duotone/pulse";
 import { SettingsIcon } from '@solar-icons/react/bold/settings'
 import { HomeAngleIcon } from '@solar-icons/react/bold/home-angle'
+import { ChatRoundLineIcon } from '@solar-icons/react/bold/chat-round-line'
 import { RoundAltArrowRightIcon } from '@solar-icons/react/bold/round-alt-arrow-right'
 import { RoundAltArrowLeftIcon } from '@solar-icons/react/bold/round-alt-arrow-left'
 
@@ -15,6 +16,7 @@ const ICON_SIZE = 28;
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: HomeAngleIcon, end: true },
+  { to: "/daily", label: "Daily", icon: ChatRoundLineIcon, end: false },
   { to: "/notas", label: "Notas", icon: NotesIcon, end: false },
   { to: "/wakatime", label: "Wakatime", icon: PulseIcon, end: false },
   { to: "/configuracoes", label: "Configurações", icon: SettingsIcon, end: false },

@@ -6,3 +6,5 @@ build/
 *.log
 .DS_Store
 backend/data/
+.claude/skills*
+CLAUDE.md

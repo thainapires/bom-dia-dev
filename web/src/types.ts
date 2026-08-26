@@ -84,6 +84,15 @@ export interface DailyNarrative {
   ontem: string;
   hoje: string;
   porIssue: IssueNarrativeItem[];
+  geradoViaLLM: boolean;
+}
+
+export interface DailyEntry {
+  date: string;
+  ontem: string;
+  hoje: string;
+  geradoViaLLM: boolean;
+  criadoEm: string;
 }
 
 export interface ChecklistItem {
@@ -105,15 +114,19 @@ export interface DashboardResponse {
   summary: {
     pronto: number;
     precisaRevisar: number;
-    aguardandoResposta: number;
+    aguardandoRespostaMeus: number;
+    aguardandoRespostaOutros: number;
     aguardando: number;
     atencao: number;
+    jaAprovado: number;
     tempoMedioMergeDias: string;
     tempoMedioPrimeiraAprovacaoDias: string;
   };
   pronto: MrItem[];
   precisaRevisar: ReviewItem[];
-  aguardandoResposta: ReviewItem[];
+  aguardandoRespostaMeus: ReviewItem[];
+  aguardandoRespostaOutros: ReviewItem[];
+  jaAprovado: ReviewItem[];
   aguardando: MrItem[];
   atencao: MrItem[];
   atividadeRecente: ActivityItem[];
@@ -134,4 +147,35 @@ export interface WakatimeStats {
   dailyAverageText: string;
   bestDay: { date: string; text: string } | null;
   languages: WakatimeLanguage[];
+}
+
+export type WakatimeRangeKey =
+  | "today"
+  | "yesterday"
+  | "last_7_days"
+  | "last_14_days"
+  | "last_30_days"
+  | "this_week"
+  | "last_week"
+  | "this_month"
+  | "last_month"
+  | "custom";
+
+export interface WakatimeTimelineSession {
+  project: string;
+  start: string;
+  end: string;
+  durationSeconds: number;
+}
+
+export interface WakatimeTimelineProject {
+  name: string;
+  totalSeconds: number;
+  totalText: string;
+  sessions: WakatimeTimelineSession[];
+}
+
+export interface WakatimeTimeline {
+  date: string;
+  projects: WakatimeTimelineProject[];
 }

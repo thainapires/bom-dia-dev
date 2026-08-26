@@ -1,4 +1,11 @@
-import type { DashboardResponse, NotesDay, WakatimeStats } from "./types";
+import type {
+  DailyEntry,
+  DashboardResponse,
+  NotesDay,
+  WakatimeRangeKey,
+  WakatimeStats,
+  WakatimeTimeline,
+} from "./types";
 
 async function handleJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -18,8 +25,37 @@ export async function fetchDashboard(options?: { forceRefresh?: boolean }): Prom
   return response.json();
 }
 
-export function fetchWakatimeStats(): Promise<WakatimeStats> {
-  return fetch("/api/wakatime").then((res) => handleJson<WakatimeStats>(res));
+export function fetchWakatimeStats(params: {
+  range: WakatimeRangeKey;
+  start?: string;
+  end?: string;
+}): Promise<WakatimeStats> {
+  const query = new URLSearchParams({ range: params.range });
+  if (params.range === "custom" && params.start && params.end) {
+    query.set("start", params.start);
+    query.set("end", params.end);
+  }
+  return fetch(`/api/wakatime?${query}`).then((res) => handleJson<WakatimeStats>(res));
+}
+
+export function fetchWakatimeTimeline(date: string): Promise<WakatimeTimeline> {
+  return fetch(`/api/wakatime/timeline?date=${date}`).then((res) => handleJson<WakatimeTimeline>(res));
+}
+
+// `null` significa "sem registro pra essa data" (404) — não é um erro a
+// exibir, é o estado natural de dias sem daily gerada ainda.
+export async function fetchDailyEntry(date: string): Promise<DailyEntry | null> {
+  const response = await fetch(`/api/daily/${date}`);
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.error ?? `Erro ao buscar daily (${response.status})`);
+  }
+  return response.json();
+}
+
+export function fetchDailyDates(): Promise<string[]> {
+  return fetch("/api/daily").then((res) => handleJson<string[]>(res));
 }
 
 export function fetchNotes(date: string): Promise<NotesDay> {

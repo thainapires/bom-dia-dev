@@ -6,8 +6,10 @@ const CARD_LABELS: Record<keyof VisibleCards, string> = {
   pronto: "Pronto pra merge",
   atencao: "Precisa de atenção",
   precisaRevisar: "Precisa revisar",
-  aguardandoResposta: "Aguardando resolução de comentário",
+  aguardandoRespostaMeus: "Aguardando resolução — meus comentários",
+  aguardandoRespostaOutros: "Aguardando resolução — comentários de outros",
   aguardando: "Aguardando review",
+  jaAprovado: "MRs abertos que já aprovei",
   atividadeRecente: "Atividade recente",
 };
 

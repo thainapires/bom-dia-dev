@@ -1,17 +1,19 @@
 import express from "express";
 import { buildDashboard } from "./dashboard";
 import { GlabError } from "./glab";
+import { dailyRouter } from "./routes/daily";
 import { notesRouter } from "./routes/notes";
-import { WakatimeError, getWakatimeStats } from "./wakatime";
-import type { DashboardResponse } from "./types";
+import { WakatimeError, getWakatimeStats, getWakatimeTimeline } from "./wakatime";
+import type { DashboardResponse, WakatimeRangeKey } from "./types";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001;
 
 app.use(express.json());
 app.use("/api/notes", notesRouter);
+app.use("/api/daily", dailyRouter);
 
-const DASHBOARD_CACHE_TTL_MS = 15 * 60 * 1000;
+const DASHBOARD_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 let dashboardCache: DashboardResponse | null = null;
 
 app.get("/api/dashboard", async (req, res) => {
@@ -45,9 +47,28 @@ app.get("/api/dashboard", async (req, res) => {
 
 app.get("/api/wakatime", async (req, res) => {
   try {
-    const { range } = req.query;
-    const stats = await getWakatimeStats(typeof range === "string" ? range : undefined);
+    const { range, start, end } = req.query;
+    const stats = await getWakatimeStats({
+      range: typeof range === "string" ? (range as WakatimeRangeKey) : undefined,
+      start: typeof start === "string" ? start : undefined,
+      end: typeof end === "string" ? end : undefined,
+    });
     res.json(stats);
+  } catch (error) {
+    if (error instanceof WakatimeError) {
+      res.status(502).json({ error: error.message });
+      return;
+    }
+    const message = error instanceof Error ? error.message : "Erro desconhecido";
+    res.status(500).json({ error: message });
+  }
+});
+
+app.get("/api/wakatime/timeline", async (req, res) => {
+  try {
+    const { date } = req.query;
+    const timeline = await getWakatimeTimeline({ date: typeof date === "string" ? date : undefined });
+    res.json(timeline);
   } catch (error) {
     if (error instanceof WakatimeError) {
       res.status(502).json({ error: error.message });

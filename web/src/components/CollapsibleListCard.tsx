@@ -10,6 +10,7 @@ interface CollapsibleListCardProps {
   iconColorClass: string;
   iconBgClass: string;
   children: ReactNode;
+  defaultOpen?: boolean;
 }
 
 export function CollapsibleListCard({
@@ -19,8 +20,9 @@ export function CollapsibleListCard({
   iconColorClass,
   iconBgClass,
   children,
+  defaultOpen,
 }: CollapsibleListCardProps) {
-  const [isOpen, setIsOpen] = useState(count > 0);
+  const [isOpen, setIsOpen] = useState(defaultOpen ?? count > 0);
 
   return (
     <div className="rounded-lg bg-card p-4 border-white/5 border">

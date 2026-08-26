@@ -13,6 +13,7 @@ interface ReviewListCardProps {
   iconBgClass: string;
   borderColorClass: string;
   badgeColorClass: string;
+  defaultOpen?: boolean;
 }
 
 export function ReviewListCard({
@@ -24,6 +25,7 @@ export function ReviewListCard({
   iconBgClass,
   borderColorClass,
   badgeColorClass,
+  defaultOpen,
 }: ReviewListCardProps) {
   return (
     <CollapsibleListCard
@@ -32,6 +34,7 @@ export function ReviewListCard({
       icon={icon}
       iconColorClass={iconColorClass}
       iconBgClass={iconBgClass}
+      defaultOpen={defaultOpen}
     >
       {items.length === 0 ? (
         <p className="text-sm text-white/40">{emptyText}</p>
