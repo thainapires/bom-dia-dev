@@ -61,6 +61,12 @@ export function addDays(isoDate: string, delta: number): string {
   return `${year}-${month}-${day}`;
 }
 
+export function formatShortDate(isoDate: string): string {
+  return anchorUTC(isoDate)
+    .toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })
+    .replace(".", "");
+}
+
 export function formatNotesDate(isoDate: string): string {
   return anchorUTC(isoDate).toLocaleDateString("pt-BR", {
     weekday: "long",

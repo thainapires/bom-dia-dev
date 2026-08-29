@@ -29,7 +29,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className={`fixed inset-x-0 bottom-0 z-20 flex h-16 w-full flex-none items-center justify-around border-t border-white/5 bg-card px-2 sm:sticky sm:inset-x-auto sm:bottom-auto sm:top-0 sm:h-screen sm:flex-col sm:justify-start sm:gap-3 sm:self-start sm:border-t-0 sm:border-r sm:px-2 sm:py-4 sm:transition-[width] sm:duration-200 sm:ease-(--ease-out) ${
+      className={`fixed inset-x-0 bottom-0 z-20 flex h-16 w-full flex-none items-center justify-around border-t border-white/5 bg-sidebar px-2 sm:sticky sm:inset-x-auto sm:bottom-auto sm:top-0 sm:h-screen sm:flex-col sm:justify-start sm:gap-3 sm:self-start sm:border-t-0 sm:border-r sm:px-2 sm:py-4 sm:transition-[width] sm:duration-200 sm:ease-(--ease-out) ${
         expanded ? "sm:w-56 sm:items-stretch" : "sm:w-16 sm:items-center"
       }`}
     >

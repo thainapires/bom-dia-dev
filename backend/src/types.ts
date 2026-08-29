@@ -230,10 +230,35 @@ export interface ChecklistItem {
   position: number;
 }
 
-export interface NotesDay {
+export interface Note {
+  id: number;
   date: string;
+  title: string;
   content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NoteSummary {
+  id: number;
+  date: string;
+  title: string;
+  preview: string;
+  createdAt: string;
+}
+
+export interface DailyStats {
+  totalTasks: number;
+  completedTasks: number;
+  wordCount: number;
+  progressPercent: number;
+}
+
+export interface NotesDayResponse {
+  date: string;
+  note: Note | null;
   checklist: ChecklistItem[];
+  stats: DailyStats;
 }
 
 export interface DashboardResponse {

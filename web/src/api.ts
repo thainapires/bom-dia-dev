@@ -1,7 +1,9 @@
 import type {
   DailyEntry,
   DashboardResponse,
-  NotesDay,
+  Note,
+  NoteSummary,
+  NotesDayResponse,
   WakatimeRangeKey,
   WakatimeStats,
   WakatimeTimeline,
@@ -58,40 +60,79 @@ export function fetchDailyDates(): Promise<string[]> {
   return fetch("/api/daily").then((res) => handleJson<string[]>(res));
 }
 
-export function fetchNotes(date: string): Promise<NotesDay> {
-  return fetch(`/api/notes/${date}`).then((res) => handleJson<NotesDay>(res));
+export function fetchNotesDay(date: string): Promise<NotesDayResponse> {
+  return fetch(`/api/notes/day/${date}`).then((res) => handleJson<NotesDayResponse>(res));
 }
 
-export function saveNotes(date: string, content: string): Promise<NotesDay> {
-  return fetch(`/api/notes/${date}`, {
+export function createNote(date: string): Promise<NotesDayResponse> {
+  return fetch(`/api/notes/day/${date}`, { method: "POST" }).then((res) =>
+    handleJson<NotesDayResponse>(res),
+  );
+}
+
+export function fetchNote(id: number): Promise<Note> {
+  return fetch(`/api/notes/${id}`).then((res) => handleJson<Note>(res));
+}
+
+export function saveNote(
+  id: number,
+  data: { title: string; content: string },
+): Promise<{ note: Note; stats: NotesDayResponse["stats"] }> {
+  return fetch(`/api/notes/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content }),
-  }).then((res) => handleJson<NotesDay>(res));
+    body: JSON.stringify(data),
+  }).then((res) => handleJson<{ note: Note; stats: NotesDayResponse["stats"] }>(res));
 }
 
-export function addChecklistItem(date: string, text: string): Promise<NotesDay> {
-  return fetch(`/api/notes/${date}/checklist`, {
+export function fetchRecentNotes(params: {
+  limit?: number;
+  beforeId?: number;
+}): Promise<{ notes: NoteSummary[]; hasMore: boolean }> {
+  const query = new URLSearchParams();
+  if (params.limit) query.set("limit", String(params.limit));
+  if (params.beforeId) query.set("beforeId", String(params.beforeId));
+  return fetch(`/api/notes/recent?${query}`).then((res) =>
+    handleJson<{ notes: NoteSummary[]; hasMore: boolean }>(res),
+  );
+}
+
+export function addChecklistItem(date: string, text: string): Promise<NotesDayResponse> {
+  return fetch(`/api/notes/day/${date}/checklist`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text }),
-  }).then((res) => handleJson<NotesDay>(res));
+  }).then((res) => handleJson<NotesDayResponse>(res));
 }
 
-export function toggleChecklistItem(
+export function updateChecklistItem(
   date: string,
   id: number,
-  done: boolean,
-): Promise<NotesDay> {
-  return fetch(`/api/notes/${date}/checklist/${id}`, {
+  data: { done?: boolean; text?: string },
+): Promise<NotesDayResponse> {
+  return fetch(`/api/notes/day/${date}/checklist/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ done }),
-  }).then((res) => handleJson<NotesDay>(res));
+    body: JSON.stringify(data),
+  }).then((res) => handleJson<NotesDayResponse>(res));
 }
 
-export function deleteChecklistItem(date: string, id: number): Promise<NotesDay> {
-  return fetch(`/api/notes/${date}/checklist/${id}`, { method: "DELETE" }).then((res) =>
-    handleJson<NotesDay>(res),
+export function deleteChecklistItem(date: string, id: number): Promise<NotesDayResponse> {
+  return fetch(`/api/notes/day/${date}/checklist/${id}`, { method: "DELETE" }).then((res) =>
+    handleJson<NotesDayResponse>(res),
+  );
+}
+
+export function reorderChecklist(date: string, orderedIds: number[]): Promise<NotesDayResponse> {
+  return fetch(`/api/notes/day/${date}/checklist/reorder`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderedIds }),
+  }).then((res) => handleJson<NotesDayResponse>(res));
+}
+
+export function clearCompletedChecklist(date: string): Promise<NotesDayResponse> {
+  return fetch(`/api/notes/day/${date}/checklist/clear-completed`, { method: "POST" }).then((res) =>
+    handleJson<NotesDayResponse>(res),
   );
 }
