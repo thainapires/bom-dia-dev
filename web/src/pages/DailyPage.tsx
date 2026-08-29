@@ -23,8 +23,6 @@ export function DailyPage() {
       .then((result) => {
         if (cancelled) return;
         setEntry(result);
-        // Recarrega a lista de datas — cobre o caso do registro de hoje
-        // ter acabado de ser gerado nessa mesma chamada.
         return fetchDailyDates().then((result2) => {
           if (!cancelled) setDates(result2);
         });

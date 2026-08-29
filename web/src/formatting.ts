@@ -76,3 +76,13 @@ export function formatNotesDate(isoDate: string): string {
     timeZone: "UTC",
   });
 }
+
+const COMPACT_MONTHS = [
+  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+];
+
+export function formatCompactDate(isoDate: string): string {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return `${String(day).padStart(2, "0")} ${COMPACT_MONTHS[month - 1]}, ${year}`;
+}
