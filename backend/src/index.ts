@@ -80,7 +80,7 @@ app.get("/api/wakatime/timeline", async (req, res) => {
   }
 });
 
-migrationsReady
+migrationsReady()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Servidor rodando em http://localhost:${PORT}`);
