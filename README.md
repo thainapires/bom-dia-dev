@@ -1,30 +1,89 @@
 # bom-dia-dev ☀️
 
 Painel diário pessoal para abrir toda manhã antes de começar a trabalhar.
-Mostra, de forma escaneável, o estado dos seus MRs no GitLab
-(prontos pra merge, aguardando review, precisando de atenção), o tempo médio
-até merge e um resumo do que foi feito no dia anterior (commits, merges,
-reviews). Interface em português, dark theme.
+Reúne, em português e dark theme, o estado dos seus MRs no GitLab, uma
+narrativa pronta pra daily standup, notas/checklist do dia e suas
+estatísticas de tempo codando (Wakatime) — tudo escaneável.
+
+![Dashboard do bom-dia-dev](docs/screenshots/dashboard.png)
 
 ## O que ele mostra
 
-- **Status dos MRs abertos**, classificados em:
-  - 🔴 **Atenção** — pipeline falhou ou há conflito de merge.
-  - 🟢 **Pronto** — pipeline passou, tem ao menos uma aprovação e sem conflito.
-  - 🟡 **Aguardando** — qualquer outro caso (aberto, ainda sem essas condições).
-- **Tempo médio até merge** dos MRs recentes.
-- **Resumo do dia anterior** — commits, merges e reviews, em formato parecido
-  com `git log --oneline`.
-- **Revisões pendentes** atribuídas a você.
+- **Dashboard** — status dos MRs abertos, classificados em:
+  - 🔴 **Atenção** — pipeline falhou, há conflito de merge ou tem comentário
+    de code review pendente.
+  - 🟢 **Pronto** — pipeline passou, tem ao menos uma aprovação e sem
+    conflito.
+  - 🟡 **Aguardando** — qualquer outro caso.
+
+  Também mostra revisões pendentes atribuídas a você (separadas por
+  situação: precisa revisar, aguardando resposta sua/de outros, já
+  aprovado), tempo médio até merge e até a primeira aprovação, "seu
+  desempenho" (abertos x fechados e tempo médio de merge nas últimas duas
+  semanas), atividade recente estilo `git log --oneline` e seus to-dos do
+  GitLab.
+- **Daily** — narrativa "o que fiz ontem / o que pretendo fazer hoje"
+  gerada por LLM (via OpenRouter) a partir da atividade real no GitLab, com
+  fallback heurístico caso a LLM falhe. Fica com histórico por dia.
+- **Notas** — bloco de notas de texto livre + checklist, um registro por
+  dia, com autosave.
+- **Wakatime** — tempo codando por período (hoje, semana, mês, customizado),
+  linguagens mais usadas e timeline de sessões por projeto no dia.
+- **Configurações** — mostrar/ocultar cards do dashboard e ajustar o limite
+  de dias pra um MR ser marcado como "esquecido" (preferências salvas no
+  `localStorage` do navegador, não sincronizam entre dispositivos).
+
+## Telas
+
+<table>
+<tr>
+<td width="50%">
+
+**Daily**
+![Daily](docs/screenshots/daily.png)
+
+</td>
+<td width="50%">
+
+**Notas**
+![Notas](docs/screenshots/notas.png)
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**Wakatime**
+![Wakatime](docs/screenshots/wakatime.png)
+
+</td>
+<td width="50%">
+
+**Configurações**
+![Configurações](docs/screenshots/configuracoes.png)
+
+</td>
+</tr>
+</table>
+
+> Os prints acima usam dados fictícios (gerados só pra ilustrar o layout).
+> Não são MRs, notas ou estatísticas reais.
 
 ## Stack
 
 - **Backend** (`backend/`): Express + TypeScript. Não usa a lib oficial do
   GitLab nem chama a API REST diretamente — chama o binário [`glab`](https://gitlab.com/gitlab-org/cli)
   (GitLab CLI) via `child_process.execFile` e faz `JSON.parse` do stdout.
+  Narrativa da Daily via [OpenRouter](https://openrouter.ai) (modelo
+  gratuito por padrão). Estatísticas de código via API do
+  [Wakatime](https://wakatime.com). Persistência (notas, checklist, daily)
+  em [Turso](https://turso.tech) (SQLite hospedado, via `@libsql/client`).
+  Testes automatizados com Vitest.
 - **Frontend** (`web/`): Vite + React + TypeScript + Tailwind CSS v4
-  (tema custom via `@theme`, sem `tailwind.config.js`) + lucide-react para
-  ícones. Fontes Inter (sans) e JetBrains Mono (mono).
+  (tema custom via `@theme`, sem `tailwind.config.js`) + `@solar-icons/react`
+  para ícones + `recharts` para os gráficos de desempenho +
+  `react-router-dom` para as rotas das abas. Fontes Inter (sans) e
+  JetBrains Mono (mono).
 - **Docker**: `docker-compose.yml` na raiz sobe os dois serviços
   (`backend` na porta 3001, `web` na porta 5173, proxy `/api` do Vite pro
   `backend`).
@@ -32,18 +91,26 @@ reviews). Interface em português, dark theme.
 ## Pré-requisitos
 
 - Node.js 20+ (ou Docker, se for rodar via `docker compose`).
+- Rodando sem Docker: o binário [`glab`](https://gitlab.com/gitlab-org/cli)
+  precisa estar instalado e no `PATH` (no modo Docker ele já vem instalado
+  na imagem do backend).
 - Um **Personal Access Token** do GitLab com escopo somente leitura
   (`read_api`).
+- Uma conta gratuita no [Turso](https://turso.tech) com um banco criado —
+  **obrigatório**, o backend não sobe sem isso (ver [Banco de dados](#banco-de-dados-turso)
+  abaixo).
+- Opcional: uma API key do [Wakatime](https://wakatime.com/settings/api-key)
+  (pra aba Wakatime funcionar) e/ou do [OpenRouter](https://openrouter.ai/settings/keys)
+  (pra narrativa da Daily ser gerada por LLM — sem ela cai num resumo
+  heurístico mais simples).
 
 ## Como rodar
 
-1. Copie o `.env.example` para `.env` na raiz e preencha com seu token:
-
-   ```
-   GITLAB_TOKEN=<seu personal access token>
-   ```
-
-2. Suba a aplicação:
+1. Copie o `.env.example` para `.env` na raiz.
+2. Crie um banco no Turso (ver seção abaixo) e preencha `TURSO_DATABASE_URL`
+   e `TURSO_AUTH_TOKEN` no `.env`, junto com `GITLAB_TOKEN` e, se quiser,
+   `WAKATIME_API_KEY`/`OPENROUTER_API_KEY`.
+3. Suba a aplicação:
 
    ```bash
    # Modo Docker (recomendado)
@@ -55,19 +122,56 @@ reviews). Interface em português, dark theme.
    npm run dev   # roda backend (porta 3001) e web (porta 5173) juntos
    ```
 
+## Banco de dados (Turso)
+
+Notas, checklist e o histórico da Daily ficam persistidos num banco SQLite
+hospedado no Turso (plano free é suficiente pro uso pessoal) — não em
+arquivo local, pra não perder os dados trocando de máquina e pra não expor
+dados pessoais versionando um `.sqlite` no repo.
+
+```bash
+# instalar a CLI
+curl -sSfL https://get.tur.so/install.sh | bash
+
+turso auth login                     # abre o navegador
+turso db create bomdiadev            # cria o banco
+turso db show bomdiadev --url        # -> TURSO_DATABASE_URL
+turso db tokens create bomdiadev     # -> TURSO_AUTH_TOKEN
+```
+
+O schema é criado automaticamente (migrations em `backend/src/db/migrations/`)
+na primeira vez que o backend sobe. Se você já tinha dados num
+`backend/data/bomdiadev.sqlite` local (versão anterior, pré-Turso), copie-os
+pro Turso com:
+
+```bash
+npm run migrate-to-turso --prefix backend
+```
+
 ## Estrutura do projeto
 
 ```
 backend/src/
-  glab.ts       # wrapper único de chamadas ao binário glab (glabApi<T>)
-  gitlab.ts     # funções de alto nível sobre a API do GitLab (MRs, aprovações, eventos...)
-  dashboard.ts  # monta o payload final: classificação, tempo médio, timeline do dia anterior
-  narrative.ts  # transforma eventos do GitLab em um resumo legível
-  index.ts      # única rota: GET /api/dashboard
+  glab.ts           # wrapper único de chamadas ao binário glab (glabApi<T>)
+  gitlab.ts         # funções de alto nível sobre a API do GitLab (MRs, aprovações, eventos, issues, todos...)
+  dashboard.ts      # monta o payload final: classificação de MRs, desempenho, atividade recente, narrativa do dia
+  narrative.ts      # classificador heurístico de atividade em issues (por palavra-chave)
+  standup.ts        # narrativa "ontem/hoje" via LLM (OpenRouter), com fallback heurístico e persistência
+  wakatime.ts       # integração com a API do Wakatime (stats + timeline)
+  db.ts             # client do Turso/libSQL + runner de migrations
+  db/migrations/    # migrations .sql, aplicadas automaticamente no boot
+  routes/
+    notes.ts        # notas + checklist por dia
+    daily.ts        # histórico e detalhe da daily gerada
+  index.ts          # rotas: /api/dashboard, /api/wakatime(/timeline), /api/notes, /api/daily
+scripts/
+  migrate-to-turso.ts  # script de uso único: copia dados de um SQLite local pro Turso
 
 web/src/
-  App.tsx               # busca /api/dashboard, guarda estado, botão manual de atualizar
-  components/           # Sidebar, Header, cards de MRs, resumo do dia, revisões pendentes, etc.
+  App.tsx                # rotas (react-router-dom): /, /daily, /notas, /wakatime, /configuracoes
+  SettingsContext.tsx     # preferências do usuário (localStorage, sem backend)
+  components/             # Sidebar, Header, cards do dashboard/daily/wakatime, skeletons...
+  pages/                  # DashboardPage, DailyPage, NotesPage, WakatimePage, SettingsPage
 ```
 
 ## Importante: autenticação com o GitLab
@@ -79,12 +183,13 @@ em containers ou processos paralelos já quebrou a autenticação do host
 anteriormente, porque o refresh token é rotativo e de uso único, validado no
 servidor do GitLab. Veja detalhes em [`CLAUDE.md`](./CLAUDE.md).
 
-## Decisões de escopo da v1
+## Decisões de escopo
 
-- Sem auto-refresh — só carga inicial + botão manual.
-- Sidebar: só o dashboard funciona, o resto é placeholder visual.
-- Sem testes automatizados.
+- Sem auto-refresh no dashboard — só carga inicial + botão manual.
 - Sem autenticação/multiusuário — é um painel pessoal, single-user, local.
+- Testes automatizados (Vitest) cobrem a classificação de MRs e a geração
+  da narrativa da Daily (`backend/src/*.test.ts`); não há testes de
+  frontend.
 
 ## Licença
 
