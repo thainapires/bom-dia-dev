@@ -108,6 +108,7 @@ export function DashboardPage() {
                     iconBgClass="bg-status-neutral/20"
                     borderColorClass="border-l-status-neutral"
                     badgeColorClass="bg-status-neutral/15 text-status-neutral"
+                    defaultOpen={false}
                   />
                 )}
                 {visibleCards.aguardandoRespostaOutros && (
@@ -120,6 +121,7 @@ export function DashboardPage() {
                     iconBgClass="bg-white/10"
                     borderColorClass="border-l-white/30"
                     badgeColorClass="bg-white/10 text-white/70"
+                    defaultOpen={false}
                   />
                 )}
                 {visibleCards.aguardando && (
@@ -130,6 +132,7 @@ export function DashboardPage() {
                     icon={BellIcon}
                     iconColorClass="text-status-waiting"
                     iconBgClass="bg-status-waiting/20"
+                    defaultOpen={false}
                   />
                 )}
                 {visibleCards.jaAprovado && (

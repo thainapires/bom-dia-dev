@@ -1,5 +1,6 @@
 import express from "express";
 import { buildDashboard } from "./dashboard";
+import { migrationsReady } from "./db";
 import { GlabError } from "./glab";
 import { dailyRouter } from "./routes/daily";
 import { notesRouter } from "./routes/notes";
@@ -79,6 +80,13 @@ app.get("/api/wakatime/timeline", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
+migrationsReady
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Servidor rodando em http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("[db] Falha ao rodar migrations no Turso:", error);
+    process.exit(1);
+  });

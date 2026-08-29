@@ -18,8 +18,8 @@ function todayStr(): string {
 
 export const dailyRouter = Router();
 
-dailyRouter.get("/", (_req, res) => {
-  res.json(listDailyDates());
+dailyRouter.get("/", async (_req, res) => {
+  res.json(await listDailyDates());
 });
 
 dailyRouter.get("/:date", async (req, res) => {
@@ -29,7 +29,7 @@ dailyRouter.get("/:date", async (req, res) => {
     return;
   }
 
-  let entry: DailyEntry | null = getDailyEntry(date);
+  let entry: DailyEntry | null = await getDailyEntry(date);
 
   // Só gera na hora pro dia de hoje — dias passados sem registro ficam
   // mesmo sem histórico (ver CLAUDE.md: sem backfill de dias anteriores ao

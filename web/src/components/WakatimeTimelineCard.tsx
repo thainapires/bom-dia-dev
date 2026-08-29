@@ -1,5 +1,6 @@
 import { AltArrowLeftIcon } from "@solar-icons/react/bold-duotone/alt-arrow-left";
 import { AltArrowRightIcon } from "@solar-icons/react/bold-duotone/alt-arrow-right";
+import { Fragment, useEffect, useState } from "react";
 import { TIMEZONE, addDays, toISODate } from "../formatting";
 import type { WakatimeTimeline, WakatimeTimelineSession } from "../types";
 
@@ -18,14 +19,21 @@ const PALETTE = [
 ];
 
 const DAY_SECONDS = 24 * 60 * 60;
-const HOUR_TICKS = Array.from({ length: 25 }, (_, hour) => hour);
-const GRID_TICKS = HOUR_TICKS.slice(1, -1);
+const AXIS_HOURS = [0, 3, 6, 9, 12, 15, 18, 21, 24];
 
 interface TimelineRow {
   name: string;
   color: string;
   totalText: string;
   sessions: WakatimeTimelineSession[];
+}
+
+interface HoveredSegment {
+  project: string;
+  color: string;
+  start: string;
+  end: string;
+  durationSeconds: number;
 }
 
 function formatDuration(totalSeconds: number): string {
@@ -105,6 +113,12 @@ interface WakatimeTimelineCardProps {
 export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelineCardProps) {
   const rows = buildRows(timeline.projects);
   const isToday = timeline.date === toISODate(new Date());
+  const nowPct = isToday ? (secondsSinceMidnight(new Date().toISOString()) / DAY_SECONDS) * 100 : null;
+  const [hovered, setHovered] = useState<HoveredSegment | null>(null);
+
+  useEffect(() => {
+    setHovered(null);
+  }, [timeline.date]);
 
   return (
     <div className="rounded-lg border border-white/5 bg-card p-4">
@@ -138,76 +152,117 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
         <p className="mt-3 text-sm text-white/40">Sem atividade registrada nesse dia.</p>
       ) : (
         <>
-          <div className="mt-4 flex items-center gap-3">
-            <div className="relative h-4 flex-1 text-[10px] text-white/40">
-              {HOUR_TICKS.map((hour) => (
-                <span
-                  key={hour}
-                  className="absolute -translate-x-1/2 first:translate-x-0 last:-translate-x-full"
-                  style={{ left: `${(hour / 24) * 100}%` }}
-                >
-                  {String(hour).padStart(2, "0")}
-                </span>
-              ))}
-            </div>
-            <div className="w-32 shrink-0" />
-          </div>
-
-          <div className="mt-2 flex flex-col gap-1.5">
-            {rows.map((row) => (
-              <div key={row.name} className="flex items-center gap-2">
-                <div className="relative h-6 flex-1 rounded-md bg-white/[0.08]">
-                  {GRID_TICKS.map((hour) => (
-                    <div
+          <div className="mt-4 overflow-x-auto">
+            <div className="relative min-w-[36rem]">
+              <div className="grid w-full grid-cols-[9.5rem_1fr] items-center gap-x-3 gap-y-1.5">
+                {/* Eixo de horário — poucos marcos (a cada 3h) em vez de uma grade por hora. */}
+                <div className="sticky left-0 z-10 bg-card" />
+                <div className="relative h-4 border-b border-white/5 pb-1.5 font-mono text-[10px] tabular-nums text-white/40">
+                  {AXIS_HOURS.map((hour) => (
+                    <span
                       key={hour}
-                      className="absolute inset-y-0 w-px bg-white/15"
+                      className="absolute -translate-x-1/2 first:translate-x-0 last:-translate-x-full"
                       style={{ left: `${(hour / 24) * 100}%` }}
-                    />
+                    >
+                      {String(hour).padStart(2, "0")}
+                    </span>
                   ))}
-                  {row.sessions.map((session, index) => {
-                    const startSec = Math.min(secondsSinceMidnight(session.start), DAY_SECONDS);
-                    const rawEndSec = secondsSinceMidnight(session.end);
-                    const endSec = rawEndSec < startSec ? DAY_SECONDS : Math.min(rawEndSec, DAY_SECONDS);
-                    const leftPct = (startSec / DAY_SECONDS) * 100;
-                    const widthPct = ((endSec - startSec) / DAY_SECONDS) * 100;
+                </div>
 
-                    return (
-                      <div
-                        key={`${session.start}-${index}`}
-                        className="group absolute inset-y-0 rounded-full"
-                        style={{
-                          left: `${leftPct}%`,
-                          width: `${widthPct}%`,
-                          minWidth: "7px",
-                          backgroundColor: row.color,
-                        }}
-                      >
-                        <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-card-main px-2.5 py-1.5 text-xs opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-                          <p className="font-medium text-white">{session.project}</p>
-                          <p className="text-white/50">
-                            {formatHourMinuteSecond(session.start)}–{formatHourMinuteSecond(session.end)} ·{" "}
-                            {formatDuration(session.durationSeconds)}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="w-32 shrink-0 text-left">
-                  <p className="truncate text-sm font-medium text-white">{row.name}</p>
-                  <p className="text-xs text-white/40">{row.totalText}</p>
-                </div>
+                {rows.map((row) => (
+                  <Fragment key={row.name}>
+                    <div className="sticky left-0 z-10 flex min-w-0 flex-col justify-center gap-0.5 bg-card pr-2">
+                      <span className="flex items-center gap-1.5 truncate text-sm font-medium text-white/90" title={row.name}>
+                        <span
+                          className="h-1.5 w-1.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: row.color }}
+                        />
+                        <span className="truncate">{row.name}</span>
+                      </span>
+                      <span className="pl-3 font-mono text-xs text-white/40">{row.totalText}</span>
+                    </div>
+
+                    <div className="relative h-7 rounded-md bg-white/[0.06] transition-colors hover:bg-white/[0.09]">
+                      {row.sessions.map((session, index) => {
+                        const startSec = Math.min(secondsSinceMidnight(session.start), DAY_SECONDS);
+                        const rawEndSec = secondsSinceMidnight(session.end);
+                        const endSec = rawEndSec < startSec ? DAY_SECONDS : Math.min(rawEndSec, DAY_SECONDS);
+                        const leftPct = (startSec / DAY_SECONDS) * 100;
+                        const widthPct = ((endSec - startSec) / DAY_SECONDS) * 100;
+
+                        return (
+                          <button
+                            key={`${session.start}-${index}`}
+                            type="button"
+                            onMouseEnter={() =>
+                              setHovered({ project: session.project, color: row.color, ...session })
+                            }
+                            onFocus={() =>
+                              setHovered({ project: session.project, color: row.color, ...session })
+                            }
+                            onClick={() =>
+                              setHovered({ project: session.project, color: row.color, ...session })
+                            }
+                            onMouseLeave={() => setHovered(null)}
+                            onBlur={() => setHovered(null)}
+                            title={`${session.project} · ${formatHourMinuteSecond(session.start)}–${formatHourMinuteSecond(session.end)} · ${formatDuration(session.durationSeconds)}`}
+                            className="absolute inset-y-1 cursor-pointer  border-0 p-0 outline-none transition-[filter] duration-150 hover:brightness-125 focus-visible:brightness-125 focus-visible:ring-2 focus-visible:ring-white/50"
+                            style={{
+                              left: `${leftPct}%`,
+                              width: `${widthPct}%`,
+                              minWidth: "4px",
+                              backgroundColor: row.color,
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  </Fragment>
+                ))}
               </div>
-            ))}
+
+              {/* Fora do grid: um item com grid-row abrangendo todas as linhas
+                  implícitas ("1 / -1") fica ambíguo sem grid-template-rows
+                  explícito e descolava o auto-placement das linhas seguintes.
+                  Por isso o marcador de "agora" é posicionado à parte, alinhado
+                  à coluna da trilha via calc() (9.5rem = largura da coluna de
+                  rótulo, 0.75rem = gap-x-3). */}
+              {nowPct !== null && (
+                <div
+                  className="pointer-events-none absolute inset-y-0"
+                  style={{ left: "calc(9.5rem + 0.75rem)", right: 0 }}
+                >
+                  <span
+                    className="absolute -top-0.5 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-status-ready"
+                    style={{ left: `${nowPct}%` }}
+                  />
+                  <span
+                    className="absolute inset-y-0 w-px bg-status-ready/40"
+                    style={{ left: `${nowPct}%` }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-white/5 pt-3">
-            {rows.map((row) => (
-              <div key={row.name} className="flex items-center gap-1.5 text-xs text-white/60">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: row.color }} />
-                {row.name}
-              </div>
-            ))}
+          <div
+            aria-live="polite"
+            className="mt-3 flex h-9 items-center gap-2 rounded-md border border-white/5 bg-white/[0.03] px-3 text-xs"
+          >
+            {hovered ? (
+              <>
+                <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: hovered.color }} />
+                <span className="font-medium text-white">{hovered.project}</span>
+                <span className="text-white/25">·</span>
+                <span className="font-mono text-white/60">
+                  {formatHourMinuteSecond(hovered.start)}–{formatHourMinuteSecond(hovered.end)}
+                </span>
+                <span className="text-white/25">·</span>
+                <span className="text-white/50">{formatDuration(hovered.durationSeconds)}</span>
+              </>
+            ) : (
+              <span className="text-white/30">Passe o mouse ou navegue com Tab sobre um bloco para ver os detalhes</span>
+            )}
           </div>
         </>
       )}

@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { dbAll, dbGet, dbRun } from "./db";
 import type { ActivityItem, ActivityKind, IssueNarrativeItem, MrItem, ReviewItem } from "./types";
 
 export class StandupError extends Error {}
@@ -205,22 +205,21 @@ export function generateViaHeuristica(input: StandupInput): { ontem: string; hoj
   return { ontem, hoje };
 }
 
-function getStoredEntry(date: string): StandupResult | null {
-  const row = db
-    .prepare<[string], DailyEntryRow>("SELECT * FROM daily_entries WHERE date = ?")
-    .get(date);
+async function getStoredEntry(date: string): Promise<StandupResult | null> {
+  const row = await dbGet<DailyEntryRow>("SELECT * FROM daily_entries WHERE date = ?", [date]);
   if (!row) return null;
   return { ontem: row.ontem, hoje: row.hoje, geradoViaLLM: Boolean(row.gerado_via_llm) };
 }
 
-function storeEntry(date: string, result: StandupResult): void {
-  db.prepare(
+async function storeEntry(date: string, result: StandupResult): Promise<void> {
+  await dbRun(
     `INSERT INTO daily_entries (date, ontem, hoje, gerado_via_llm, model, created_at)
      VALUES (?, ?, ?, ?, ?, ?)
      ON CONFLICT(date) DO UPDATE SET
        ontem = excluded.ontem, hoje = excluded.hoje,
        gerado_via_llm = excluded.gerado_via_llm, model = excluded.model, created_at = excluded.created_at`,
-  ).run(date, result.ontem, result.hoje, result.geradoViaLLM ? 1 : 0, result.geradoViaLLM ? MODEL : null, new Date().toISOString());
+    [date, result.ontem, result.hoje, result.geradoViaLLM ? 1 : 0, result.geradoViaLLM ? MODEL : null, new Date().toISOString()],
+  );
 }
 
 // `persist=false` é usado pelo range customizado de `/api/dashboard` (feature
@@ -234,14 +233,14 @@ export async function getOrCreateStandup(
   const persist = options.persist ?? true;
 
   if (persist) {
-    const existing = getStoredEntry(date);
+    const existing = await getStoredEntry(date);
     if (existing) return existing;
   }
 
   try {
     const { ontem, hoje } = await generateViaLLM(input);
     const result: StandupResult = { ontem, hoje, geradoViaLLM: true };
-    if (persist) storeEntry(date, result);
+    if (persist) await storeEntry(date, result);
     return result;
   } catch (error) {
     // Não persiste o fallback: se a falha for passageira (rate-limit do
@@ -255,10 +254,10 @@ export async function getOrCreateStandup(
   }
 }
 
-export function getDailyEntry(date: string): (StandupResult & { date: string; criadoEm: string }) | null {
-  const row = db
-    .prepare<[string], DailyEntryRow>("SELECT * FROM daily_entries WHERE date = ?")
-    .get(date);
+export async function getDailyEntry(
+  date: string,
+): Promise<(StandupResult & { date: string; criadoEm: string }) | null> {
+  const row = await dbGet<DailyEntryRow>("SELECT * FROM daily_entries WHERE date = ?", [date]);
   if (!row) return null;
   return {
     date: row.date,
@@ -269,9 +268,7 @@ export function getDailyEntry(date: string): (StandupResult & { date: string; cr
   };
 }
 
-export function listDailyDates(): string[] {
-  return db
-    .prepare<[], { date: string }>("SELECT date FROM daily_entries ORDER BY date DESC")
-    .all()
-    .map((row) => row.date);
+export async function listDailyDates(): Promise<string[]> {
+  const rows = await dbAll<{ date: string }>("SELECT date FROM daily_entries ORDER BY date DESC");
+  return rows.map((row) => row.date);
 }
