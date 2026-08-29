@@ -83,7 +83,7 @@ export function Header({ onRefresh, isRefreshing, lastUpdated }: HeaderProps) {
               type="button"
               onClick={startEdit}
               title="Editar nome"
-              className="group -mx-1.5 flex items-center gap-1.5 rounded-md px-1.5 py-0.5 transition hover:bg-white/10"
+              className="group -mx-1.5 flex items-center gap-1.5 rounded-md px-1.5 py-0.5 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
             >
               {settings.displayName}
               <Pen2Icon
@@ -100,7 +100,7 @@ export function Header({ onRefresh, isRefreshing, lastUpdated }: HeaderProps) {
           type="button"
           onClick={onRefresh}
           disabled={isRefreshing}
-          className="flex flex-none items-center gap-2 rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 disabled:opacity-50 cursor-pointer"
+          className="flex flex-none items-center gap-2 rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           <RefreshIcon size={16} className={isRefreshing ? "animate-spin" : ""} />
           Atualizar

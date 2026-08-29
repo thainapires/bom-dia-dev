@@ -46,13 +46,22 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       subtitleZero: "Nenhum MR para revisar",
     },
     {
-      label: "Aguardando resposta",
-      value: summary.aguardandoResposta,
+      label: "Aguardando resposta (meus)",
+      value: summary.aguardandoRespostaMeus,
       color: "text-blue-400",
       background: "bg-blue-500/20",
       icon: ChatLineIcon,
-      subtitle: "Você respondeu a todos",
-      subtitleZero: "Nenhum MR aguardando resposta",
+      subtitle: "Comentários seus sem resposta",
+      subtitleZero: "Você respondeu a todos",
+    },
+    {
+      label: "Aguardando resposta (outros)",
+      value: summary.aguardandoRespostaOutros,
+      color: "text-cyan-300",
+      background: "bg-cyan-500/20",
+      icon: ChatLineIcon,
+      subtitle: "Comentários de colegas sem resposta",
+      subtitleZero: "Nenhum comentário de colega pendente",
     },
     {
       label: "Aguardando review",
@@ -75,7 +84,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
   ];
 
   return (
-    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
       {cards.map((card) => (
         <SummaryCard key={card.label} {...card} />
       ))}

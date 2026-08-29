@@ -6,8 +6,10 @@ const CARD_LABELS: Record<keyof VisibleCards, string> = {
   pronto: "Pronto pra merge",
   atencao: "Precisa de atenção",
   precisaRevisar: "Precisa revisar",
-  aguardandoResposta: "Aguardando resolução de comentário",
+  aguardandoRespostaMeus: "Aguardando resolução — meus comentários",
+  aguardandoRespostaOutros: "Aguardando resolução — comentários de outros",
   aguardando: "Aguardando review",
+  jaAprovado: "MRs abertos que já aprovei",
   atividadeRecente: "Atividade recente",
 };
 
@@ -65,7 +67,7 @@ export function SettingsPage() {
           <button
             type="button"
             onClick={resetSettings}
-            className="mt-6 flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm text-white/80 transition hover:bg-white/20"
+            className="mt-6 flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm text-white/80 transition hover:bg-white/20 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
           >
             <RefreshIcon size={16} />
             Restaurar valores padrão

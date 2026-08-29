@@ -10,6 +10,7 @@ interface CollapsibleListCardProps {
   iconColorClass: string;
   iconBgClass: string;
   children: ReactNode;
+  defaultOpen?: boolean;
 }
 
 export function CollapsibleListCard({
@@ -19,15 +20,17 @@ export function CollapsibleListCard({
   iconColorClass,
   iconBgClass,
   children,
+  defaultOpen,
 }: CollapsibleListCardProps) {
-  const [isOpen, setIsOpen] = useState(count > 0);
+  const [isOpen, setIsOpen] = useState(defaultOpen ?? count > 0);
 
   return (
     <div className="rounded-lg bg-card p-4 border-white/5 border">
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="flex w-full items-center justify-between gap-2 text-left"
+        aria-expanded={isOpen}
+        className="flex w-full items-center justify-between gap-2 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
       >
         <h2 className="flex items-center gap-2 text-sm font-semibold text-white/80">
           <span className={`flex h-7 w-7 flex-none items-center justify-center rounded-lg ${iconBgClass}`}>
@@ -40,10 +43,16 @@ export function CollapsibleListCard({
         </h2>
         <AltArrowDownIcon
           size={16}
-          className={`flex-none text-white/40 transition-transform ${isOpen ? "" : "rotate-180"}`}
+          className={`flex-none text-white/40 transition-transform duration-200 ease-(--ease-out) ${isOpen ? "" : "rotate-180"}`}
         />
       </button>
-      {isOpen && <div className="mt-3 flex max-h-64 flex-col gap-2 overflow-y-auto">{children}</div>}
+      <div
+        className={`grid transition-[grid-template-rows] duration-200 ease-(--ease-out) ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+      >
+        <div className="overflow-hidden">
+          <div className="flex max-h-64 flex-col gap-2 overflow-y-auto pt-3">{children}</div>
+        </div>
+      </div>
     </div>
   );
 }

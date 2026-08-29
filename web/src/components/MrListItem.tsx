@@ -34,7 +34,7 @@ export function MrListItem({ mr }: { mr: MrItem }) {
       href={mr.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`flex items-center gap-2 rounded-md border-l-4 bg-white/5 px-3 py-2 transition hover:bg-white/10 ${borderByStatus[mr.status]}`}
+      className={`flex items-center gap-2 rounded-md border-l-4 bg-white/5 px-3 py-2 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${borderByStatus[mr.status]}`}
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">

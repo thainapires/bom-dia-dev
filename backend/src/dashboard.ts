@@ -16,9 +16,9 @@ import {
   getTodos,
 } from "./gitlab";
 import { heuristicClassifier } from "./narrative";
+import { getOrCreateStandup } from "./standup";
 import type {
   ActivityItem,
-  DailyNarrative,
   DashboardResponse,
   Desempenho,
   DesempenhoSemana,
@@ -29,7 +29,6 @@ import type {
   GitlabMergeRequestSummary,
   GitlabTodo,
   IssueDayActivity,
-  IssueNarrativeItem,
   MrItem,
   MrStatus,
   ReviewItem,
@@ -91,9 +90,14 @@ function hoursOpen(createdAt: Date, now: Date): number {
   return Math.floor(daysBetween(createdAt, now) * 24);
 }
 
+// `range.after` é o dia "anteontem" (ver `yesterdayRange`), excluído por
+// completo pra imitar o comportamento exclusivo do `after`/`before` da API
+// de eventos do GitLab — daí pular pro início do dia seguinte antes de
+// comparar, em vez de usar `range.after` como limite inferior direto.
 function isWithinRange(iso: string, range: { after: string; before: string }): boolean {
   const time = new Date(iso).getTime();
-  return time >= new Date(range.after).getTime() && time < new Date(range.before).getTime();
+  const afterExclusive = new Date(range.after).getTime() + 24 * 60 * 60 * 1000;
+  return time >= afterExclusive && time < new Date(range.before).getTime();
 }
 
 // Uma thread de code review conta como pendente quando tem nota(s)
@@ -156,31 +160,54 @@ async function enrichMr(
   };
 }
 
-// Uma discussão conta como "comentário meu aguardando resposta" quando eu
-// participei dela (autor de alguma nota) e ela ainda tem nota(s) resolvível(is)
-// não resolvida(s) — ou seja, o autor do MR ainda não tratou.
-function hasUnresolvedNoteFromMe(discussions: GitlabDiscussion[], myUserId: number): boolean {
-  return discussions.some((discussion) => {
-    const participatedByMe = discussion.notes.some((note) => note.author.id === myUserId);
-    if (!participatedByMe) return false;
-    return discussion.notes.some((note) => note.resolvable && !note.resolved);
-  });
+// Dono de uma pendência de review é definido nota a nota, não por discussão
+// inteira: uma nota resolvível ainda não resolvida é "minha" se eu sou a
+// autora dela, senão é "de outros". Uma mesma discussão pode ter nota minha
+// já resolvida e nota de outra pessoa ainda pendente (ou vice-versa) — por
+// isso não dá pra decidir pela discussão como um todo, só nota por nota.
+export function unresolvedCommentOwnership(
+  discussions: GitlabDiscussion[],
+  myUserId: number,
+): { mine: boolean; others: boolean } {
+  let mine = false;
+  let others = false;
+  for (const discussion of discussions) {
+    for (const note of discussion.notes) {
+      if (!note.resolvable || note.resolved) continue;
+      if (note.author.id === myUserId) {
+        mine = true;
+      } else {
+        others = true;
+      }
+    }
+  }
+  return { mine, others };
 }
 
-async function enrichReviewItem(
+export async function enrichReviewItem(
   mr: GitlabMergeRequestSummary,
   myUserId: number,
-): Promise<{ item: ReviewItem; situacao: ReviewSituacao } | null> {
+): Promise<{ item: ReviewItem; situacao: ReviewSituacao }> {
   const [approvals, discussions] = await Promise.all([
     getApprovals(mr.project_id, mr.iid),
     getMrDiscussions(mr.project_id, mr.iid),
   ]);
 
   const alreadyApprovedByMe = approvals.approved_by.some((a) => a.user.id === myUserId);
-  const aguardandoResposta = hasUnresolvedNoteFromMe(discussions, myUserId);
+  const { mine: pendenteComigo, others: pendenteComOutros } = unresolvedCommentOwnership(
+    discussions,
+    myUserId,
+  );
 
-  if (alreadyApprovedByMe && !aguardandoResposta) {
-    return null;
+  let situacao: ReviewSituacao;
+  if (pendenteComigo) {
+    situacao = "aguardandoRespostaMeus";
+  } else if (pendenteComOutros) {
+    situacao = "aguardandoRespostaOutros";
+  } else if (alreadyApprovedByMe) {
+    situacao = "jaAprovado";
+  } else {
+    situacao = "precisaRevisar";
   }
 
   const horasAberto = hoursOpen(new Date(mr.created_at), new Date());
@@ -195,7 +222,7 @@ async function enrichReviewItem(
       diasAberto: Math.floor(horasAberto / 24),
       horasAberto,
     },
-    situacao: aguardandoResposta ? "aguardandoResposta" : "precisaRevisar",
+    situacao,
   };
 }
 
@@ -435,89 +462,6 @@ function buildDesempenho(
   };
 }
 
-function pluralize(count: number, singular: string, plural: string): string {
-  return count === 1 ? singular : plural;
-}
-
-function joinPtBr(parts: string[]): string {
-  if (parts.length === 0) return "";
-  if (parts.length === 1) return parts[0];
-  return `${parts.slice(0, -1).join(", ")} e ${parts[parts.length - 1]}`;
-}
-
-function buildResumoOntem(ontem: ActivityItem[]): string {
-  const counts = { commit: 0, merge: 0, review: 0, abertura: 0, issue: 0, comentario: 0, aprovacaoRecebida: 0 };
-  for (const item of ontem) {
-    counts[item.kind]++;
-  }
-
-  const parts: string[] = [];
-  if (counts.commit > 0) {
-    parts.push(`fez ${counts.commit} ${pluralize(counts.commit, "commit", "commits")}`);
-  }
-  if (counts.abertura > 0) {
-    parts.push(`abriu ${counts.abertura} ${pluralize(counts.abertura, "MR", "MRs")}`);
-  }
-  if (counts.merge > 0) {
-    parts.push(`mergeou ${counts.merge} ${pluralize(counts.merge, "MR", "MRs")}`);
-  }
-  if (counts.review > 0) {
-    parts.push(`revisou ${counts.review} ${pluralize(counts.review, "MR", "MRs")}`);
-  }
-  if (counts.issue > 0) {
-    parts.push(`assumiu ${counts.issue} ${pluralize(counts.issue, "issue", "issues")}`);
-  }
-
-  if (parts.length === 0) {
-    return "Ontem foi tranquilo, sem atividade registrada no GitLab.";
-  }
-
-  return `Ontem você ${joinPtBr(parts)}.`;
-}
-
-function buildResumoHoje(summary: DashboardResponse["summary"]): string {
-  const parts: string[] = [];
-  if (summary.pronto > 0) {
-    parts.push(`${summary.pronto} ${pluralize(summary.pronto, "MR pronto", "MRs prontos")} pra merge`);
-  }
-  if (summary.precisaRevisar > 0) {
-    parts.push(
-      `${summary.precisaRevisar} ${pluralize(summary.precisaRevisar, "MR esperando", "MRs esperando")} sua revisão`,
-    );
-  }
-  if (summary.aguardandoResposta > 0) {
-    parts.push(
-      `${summary.aguardandoResposta} ${pluralize(summary.aguardandoResposta, "comentário seu esperando", "comentários seus esperando")} resposta`,
-    );
-  }
-  if (summary.aguardando > 0) {
-    parts.push(
-      `${summary.aguardando} ${pluralize(summary.aguardando, "MR aguardando", "MRs aguardando")} aprovação`,
-    );
-  }
-  if (summary.atencao > 0) {
-    parts.push(`${summary.atencao} ${pluralize(summary.atencao, "MR pedindo", "MRs pedindo")} atenção`);
-  }
-
-  if (parts.length === 0) {
-    return "Hoje tá tudo tranquilo, nada pendente por aqui.";
-  }
-
-  return `Hoje: ${joinPtBr(parts)}.`;
-}
-
-function buildNarrativa(
-  ontem: ActivityItem[],
-  summary: DashboardResponse["summary"],
-  porIssue: IssueNarrativeItem[],
-): DailyNarrative {
-  return {
-    ontem: buildResumoOntem(ontem),
-    hoje: buildResumoHoje(summary),
-    porIssue,
-  };
-}
-
 export async function buildDashboard(
   dateRange?: { after: string; before: string },
 ): Promise<DashboardResponse> {
@@ -560,17 +504,21 @@ export async function buildDashboard(
   const aguardando = enrichedMrs.filter((mr) => mr.status === "aguardando");
   const atencao = enrichedMrs.filter((mr) => mr.status === "atencao");
 
-  const reviewResults = (
-    await Promise.all(
-      mrsToReviewRaw.filter((mr) => !mr.draft).map((mr) => enrichReviewItem(mr, user.id)),
-    )
-  ).filter((result): result is { item: ReviewItem; situacao: ReviewSituacao } => result !== null);
+  const reviewResults = await Promise.all(
+    mrsToReviewRaw.filter((mr) => !mr.draft).map((mr) => enrichReviewItem(mr, user.id)),
+  );
 
   const precisaRevisar = reviewResults
     .filter((result) => result.situacao === "precisaRevisar")
     .map((result) => result.item);
-  const aguardandoResposta = reviewResults
-    .filter((result) => result.situacao === "aguardandoResposta")
+  const aguardandoRespostaMeus = reviewResults
+    .filter((result) => result.situacao === "aguardandoRespostaMeus")
+    .map((result) => result.item);
+  const aguardandoRespostaOutros = reviewResults
+    .filter((result) => result.situacao === "aguardandoRespostaOutros")
+    .map((result) => result.item);
+  const jaAprovado = reviewResults
+    .filter((result) => result.situacao === "jaAprovado")
     .map((result) => result.item);
 
   const issueBuilds = await Promise.all(
@@ -612,12 +560,28 @@ export async function buildDashboard(
 
   const desempenho = buildDesempenho(mrsCriados28d, mrsMergeados28d, now);
 
+  const standupResult = await getOrCreateStandup(
+    toDateStr(now),
+    {
+      ontemActivities: ontem,
+      porIssue,
+      pendentes: {
+        pronto: pronto.map((mr) => ({ title: mr.title })),
+        atencao: atencao.map((mr) => ({ title: mr.title, motivoAtencao: mr.motivoAtencao })),
+        precisaRevisar: precisaRevisar.map((mr) => ({ title: mr.title, author: mr.author })),
+      },
+    },
+    { persist: !dateRange },
+  );
+
   const summary = {
     pronto: pronto.length,
     precisaRevisar: precisaRevisar.length,
-    aguardandoResposta: aguardandoResposta.length,
+    aguardandoRespostaMeus: aguardandoRespostaMeus.length,
+    aguardandoRespostaOutros: aguardandoRespostaOutros.length,
     aguardando: aguardando.length,
     atencao: atencao.length,
+    jaAprovado: jaAprovado.length,
     tempoMedioMergeDias: averageMergeTime(mergedMRs),
     tempoMedioPrimeiraAprovacaoDias: averageFirstApprovalTime(mergedMRs, approvalDates),
   };
@@ -628,12 +592,14 @@ export async function buildDashboard(
     summary,
     pronto,
     precisaRevisar,
-    aguardandoResposta,
+    aguardandoRespostaMeus,
+    aguardandoRespostaOutros,
+    jaAprovado,
     aguardando,
     atencao,
     atividadeRecente,
     desempenho,
-    narrativa: buildNarrativa(ontem, summary, porIssue),
+    narrativa: { ...standupResult, porIssue },
     todos: todosRaw.map(mapTodoToItem),
   };
 }

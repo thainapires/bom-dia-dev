@@ -11,9 +11,10 @@ interface MrListCardProps {
   icon: ComponentType<IconProps>;
   iconColorClass: string;
   iconBgClass: string;
+  defaultOpen?: boolean;
 }
 
-export function MrListCard({ title, items, emptyText, icon, iconColorClass, iconBgClass }: MrListCardProps) {
+export function MrListCard({ title, items, emptyText, icon, iconColorClass, iconBgClass, defaultOpen }: MrListCardProps) {
   return (
     <CollapsibleListCard
       title={title}
@@ -21,6 +22,7 @@ export function MrListCard({ title, items, emptyText, icon, iconColorClass, icon
       icon={icon}
       iconColorClass={iconColorClass}
       iconBgClass={iconBgClass}
+      defaultOpen={defaultOpen}
     >
       {items.length === 0 ? (
         <p className="text-sm text-white/40">{emptyText}</p>

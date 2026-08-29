@@ -125,7 +125,7 @@ export function NotesPage() {
             type="button"
             onClick={() => setDate((current) => addDays(current, -1))}
             title="Dia anterior"
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-white/80 transition hover:bg-white/10"
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-white/80 transition hover:bg-white/10 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
           >
             <ArrowLeftIcon size={16} />
           </button>
@@ -133,7 +133,7 @@ export function NotesPage() {
             <button
               type="button"
               onClick={() => setDate(toISODate(new Date()))}
-              className="rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10"
+              className="rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
             >
               Hoje
             </button>
@@ -142,7 +142,7 @@ export function NotesPage() {
             type="button"
             onClick={() => setDate((current) => addDays(current, 1))}
             title="Próximo dia"
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-white/80 transition hover:bg-white/10"
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-white/80 transition hover:bg-white/10 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
           >
             <ArrowRightIcon size={16} />
           </button>
@@ -161,15 +161,15 @@ export function NotesPage() {
             <h2 className="text-sm font-semibold text-white/80">Bloco de notas</h2>
             <div className="flex items-center">
               {saveStatus === "saving" ? (
-                <>
+                <span className="flex items-center opacity-100 transition-opacity duration-150 ease-(--ease-out) starting:opacity-0">
                   <RefreshIcon size={16} className="animate-spin text-white/40" />
                   <span className="ml-2 text-xs font-semibold text-white/40">Salvando...</span>
-                </>
+                </span>
               ) : (
-                <>
+                <span className="flex items-center opacity-100 transition-opacity duration-150 ease-(--ease-out) starting:opacity-0">
                   <CheckCircleIcon size={16} className="text-status-ready" />
                   <span className="ml-2 text-xs font-semibold text-status-ready/90">Salvo</span>
-                </>
+                </span>
               )}
             </div>
           </div>
@@ -199,7 +199,7 @@ export function NotesPage() {
             <button
               type="submit"
               title="Adicionar"
-              className="flex flex-none items-center justify-center rounded-md bg-white/10 px-3 py-2 text-white/80 transition hover:bg-white/20"
+              className="flex flex-none items-center justify-center rounded-md bg-white/10 px-3 py-2 text-white/80 transition hover:bg-white/20 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
             >
               <AddCircleIcon size={16} />
             </button>
@@ -210,17 +210,20 @@ export function NotesPage() {
               <p className="text-sm text-white/40">Nenhum item no checklist.</p>
             ) : (
               notes.checklist.map((item) => (
-                <div key={item.id} className="flex items-center gap-2 rounded-md bg-white/5 px-3 py-2">
+                <div
+                  key={item.id}
+                  className="flex items-center gap-2 rounded-md bg-white/5 px-3 py-2 opacity-100 transition-[opacity,transform] duration-150 ease-(--ease-out) starting:-translate-y-1 starting:opacity-0"
+                >
                   <label className="relative flex h-4 w-4 flex-none cursor-pointer">
                     <input
                       type="checkbox"
                       checked={item.done}
                       onChange={(event) => handleToggleItem(item.id, event.target.checked)}
-                      className="peer h-4 w-4 appearance-none rounded-sm bg-white checked:bg-status-ready"
+                      className="peer h-4 w-4 appearance-none rounded-sm bg-white transition-colors duration-150 checked:bg-status-ready"
                     />
 
                     <svg
-                      className="pointer-events-none absolute inset-0 hidden h-4 w-4 p-0.5 text-white peer-checked:block"
+                      className="pointer-events-none absolute inset-0 h-4 w-4 scale-50 p-0.5 text-white opacity-0 transition-[opacity,transform] duration-150 ease-(--ease-out) peer-checked:scale-100 peer-checked:opacity-100"
                       viewBox="0 0 16 16"
                       fill="none"
                     >
@@ -234,7 +237,7 @@ export function NotesPage() {
                     </svg>
                   </label>
                   <span
-                    className={`min-w-0 flex-1 truncate text-sm ${
+                    className={`min-w-0 flex-1 truncate text-sm transition-colors duration-150 ${
                       item.done ? "text-white/40 line-through" : "text-white/90"
                     }`}
                   >
@@ -244,7 +247,7 @@ export function NotesPage() {
                     type="button"
                     onClick={() => handleDeleteItem(item.id)}
                     title="Remover"
-                    className="flex-none text-white/30 transition hover:text-status-attention"
+                    className="flex-none text-white/30 transition hover:text-status-attention active:scale-[0.9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
                   >
                     <TrashBinMinimalisticIcon size={14} />
                   </button>

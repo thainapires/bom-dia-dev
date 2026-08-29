@@ -118,9 +118,19 @@ export interface ReviewItem {
 }
 
 // "precisaRevisar": MR aguardando sua primeira revisão.
-// "aguardandoResposta": você já deixou comentário(s) não resolvidos no MR —
-// a bola está com o autor, não precisa revisar de novo ainda.
-export type ReviewSituacao = "precisaRevisar" | "aguardandoResposta";
+// "aguardandoRespostaMeus": você já deixou comentário(s) não resolvidos no
+// MR — a bola está com o autor, não precisa revisar de novo ainda.
+// "aguardandoRespostaOutros": você não tem comentário pendente, mas outro
+// reviewer/participante tem — vencedor de "aguardandoRespostaMeus" quando o
+// MR tem os dois tipos ao mesmo tempo (ver `unresolvedCommentOwnership` em
+// dashboard.ts).
+// "jaAprovado": você já aprovou e não há comentário pendente (nem seu, nem
+// de outros) — nada mais exige sua ação, só fica de referência.
+export type ReviewSituacao =
+  | "precisaRevisar"
+  | "aguardandoRespostaMeus"
+  | "aguardandoRespostaOutros"
+  | "jaAprovado";
 
 export type ActivityKind =
   | "commit"
@@ -180,6 +190,17 @@ export interface DailyNarrative {
   ontem: string;
   hoje: string;
   porIssue: IssueNarrativeItem[];
+  // false quando a chamada à LLM falhou e o texto veio do fallback heurístico
+  // (ver `standup.ts`).
+  geradoViaLLM: boolean;
+}
+
+export interface DailyEntry {
+  date: string;
+  ontem: string;
+  hoje: string;
+  geradoViaLLM: boolean;
+  criadoEm: string;
 }
 
 export interface DesempenhoSemana {
@@ -221,15 +242,19 @@ export interface DashboardResponse {
   summary: {
     pronto: number;
     precisaRevisar: number;
-    aguardandoResposta: number;
+    aguardandoRespostaMeus: number;
+    aguardandoRespostaOutros: number;
     aguardando: number;
     atencao: number;
+    jaAprovado: number;
     tempoMedioMergeDias: string;
     tempoMedioPrimeiraAprovacaoDias: string;
   };
   pronto: MrItem[];
   precisaRevisar: ReviewItem[];
-  aguardandoResposta: ReviewItem[];
+  aguardandoRespostaMeus: ReviewItem[];
+  aguardandoRespostaOutros: ReviewItem[];
+  jaAprovado: ReviewItem[];
   aguardando: MrItem[];
   atencao: MrItem[];
   atividadeRecente: ActivityItem[];
@@ -250,4 +275,35 @@ export interface WakatimeStats {
   dailyAverageText: string;
   bestDay: { date: string; text: string } | null;
   languages: WakatimeLanguage[];
+}
+
+export type WakatimeRangeKey =
+  | "today"
+  | "yesterday"
+  | "last_7_days"
+  | "last_14_days"
+  | "last_30_days"
+  | "this_week"
+  | "last_week"
+  | "this_month"
+  | "last_month"
+  | "custom";
+
+export interface WakatimeTimelineSession {
+  project: string;
+  start: string;
+  end: string;
+  durationSeconds: number;
+}
+
+export interface WakatimeTimelineProject {
+  name: string;
+  totalSeconds: number;
+  totalText: string;
+  sessions: WakatimeTimelineSession[];
+}
+
+export interface WakatimeTimeline {
+  date: string;
+  projects: WakatimeTimelineProject[];
 }

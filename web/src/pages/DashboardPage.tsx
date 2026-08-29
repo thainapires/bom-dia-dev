@@ -59,7 +59,7 @@ export function DashboardPage() {
       )}
 
       {data && (
-        <>
+        <div className="opacity-100 transition-opacity duration-300 ease-(--ease-out) starting:opacity-0">
           <SummaryCards summary={data.summary} />
 
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
@@ -98,16 +98,30 @@ export function DashboardPage() {
                     badgeColorClass="bg-status-waiting/15 text-status-waiting"
                   />
                 )}
-                {visibleCards.aguardandoResposta && (
+                {visibleCards.aguardandoRespostaMeus && (
                   <ReviewListCard
-                    title="Aguardando resolução de comentário"
-                    items={data.aguardandoResposta}
+                    title="Aguardando resolução — meus comentários"
+                    items={data.aguardandoRespostaMeus}
                     emptyText="Nenhum comentário seu aguardando resposta."
                     icon={ClockCircleLinear}
                     iconColorClass="text-status-neutral"
                     iconBgClass="bg-status-neutral/20"
                     borderColorClass="border-l-status-neutral"
                     badgeColorClass="bg-status-neutral/15 text-status-neutral"
+                    defaultOpen={false}
+                  />
+                )}
+                {visibleCards.aguardandoRespostaOutros && (
+                  <ReviewListCard
+                    title="Aguardando resolução — comentários de outros"
+                    items={data.aguardandoRespostaOutros}
+                    emptyText="Nenhum comentário de colega aguardando resposta."
+                    icon={ClockCircleLinear}
+                    iconColorClass="text-white/60"
+                    iconBgClass="bg-white/10"
+                    borderColorClass="border-l-white/30"
+                    badgeColorClass="bg-white/10 text-white/70"
+                    defaultOpen={false}
                   />
                 )}
                 {visibleCards.aguardando && (
@@ -118,6 +132,20 @@ export function DashboardPage() {
                     icon={BellIcon}
                     iconColorClass="text-status-waiting"
                     iconBgClass="bg-status-waiting/20"
+                    defaultOpen={false}
+                  />
+                )}
+                {visibleCards.jaAprovado && (
+                  <ReviewListCard
+                    title="MRs abertos que já aprovei"
+                    items={data.jaAprovado}
+                    emptyText="Nenhum MR aprovado esperando merge."
+                    icon={CheckCircleIcon}
+                    iconColorClass="text-white/50"
+                    iconBgClass="bg-white/10"
+                    borderColorClass="border-l-white/20"
+                    badgeColorClass="bg-white/10 text-white/60"
+                    defaultOpen={false}
                   />
                 )}
               </div>
@@ -128,7 +156,7 @@ export function DashboardPage() {
               <PerformanceCard desempenho={data.desempenho} />
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {!data && isLoading && !error && (

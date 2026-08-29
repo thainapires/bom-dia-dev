@@ -1,26 +1,48 @@
-import Database from "better-sqlite3";
+import { createClient, type Client, type InArgs } from "@libsql/client";
 import fs from "node:fs";
 import path from "node:path";
 
-const DATA_DIR = path.join(__dirname, "..", "data");
-const DB_PATH = path.join(DATA_DIR, "bomdiadev.sqlite");
 const MIGRATIONS_DIR = path.join(__dirname, "db", "migrations");
 
-fs.mkdirSync(DATA_DIR, { recursive: true });
+// Lazy: só conecta (e exige TURSO_DATABASE_URL) no primeiro uso real, não ao
+// importar o módulo — senão testes que importam dashboard.ts/standup.ts só
+// pelas funções puras (sem tocar no banco) quebrariam sem TURSO_DATABASE_URL
+// configurada.
+let client: Client | null = null;
 
-export const db = new Database(DB_PATH);
-db.pragma("journal_mode = WAL");
-db.pragma("foreign_keys = ON");
+function getClient(): Client {
+  if (client) return client;
+  const url = process.env.TURSO_DATABASE_URL;
+  if (!url) {
+    throw new Error(
+      "TURSO_DATABASE_URL não configurada — crie um banco no Turso e preencha o .env (ver .env.example)",
+    );
+  }
+  client = createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN });
+  return client;
+}
 
-function runMigrations(): void {
-  db.exec(
+export async function dbGet<T>(sql: string, args: InArgs = []): Promise<T | undefined> {
+  const result = await getClient().execute({ sql, args });
+  return result.rows[0] as unknown as T | undefined;
+}
+
+export async function dbAll<T>(sql: string, args: InArgs = []): Promise<T[]> {
+  const result = await getClient().execute({ sql, args });
+  return result.rows as unknown as T[];
+}
+
+export async function dbRun(sql: string, args: InArgs = []): Promise<void> {
+  await getClient().execute({ sql, args });
+}
+
+async function runMigrations(): Promise<void> {
+  const db = getClient();
+  await db.execute(
     "CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY, applied_at TEXT NOT NULL)",
   );
   const applied = new Set(
-    db
-      .prepare<[], { name: string }>("SELECT name FROM _migrations")
-      .all()
-      .map((row) => row.name),
+    (await dbAll<{ name: string }>("SELECT name FROM _migrations")).map((row) => row.name),
   );
 
   const files = fs
@@ -31,12 +53,19 @@ function runMigrations(): void {
   for (const file of files) {
     if (applied.has(file)) continue;
     const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8");
-    db.exec(sql);
-    db.prepare("INSERT INTO _migrations (name, applied_at) VALUES (?, ?)").run(
+    await db.executeMultiple(sql);
+    await dbRun("INSERT INTO _migrations (name, applied_at) VALUES (?, ?)", [
       file,
       new Date().toISOString(),
-    );
+    ]);
   }
 }
 
-runMigrations();
+// Só dispara a primeira vez que alguém chama — não como efeito colateral de
+// importar este módulo (mesmo motivo do client lazy acima).
+let migrationsPromise: Promise<void> | null = null;
+
+export function migrationsReady(): Promise<void> {
+  if (!migrationsPromise) migrationsPromise = runMigrations();
+  return migrationsPromise;
+}
