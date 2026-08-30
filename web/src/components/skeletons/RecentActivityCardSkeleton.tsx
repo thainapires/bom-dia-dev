@@ -1,8 +1,9 @@
 import { Skeleton } from "./Skeleton";
+import { Card } from "../ui";
 
 export function RecentActivityCardSkeleton() {
   return (
-    <div className="rounded-lg border border-white/5 bg-card p-4">
+    <Card>
       <div className="flex items-center justify-between gap-2">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-3 w-14" />
@@ -19,6 +20,6 @@ export function RecentActivityCardSkeleton() {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

@@ -1,8 +1,9 @@
 import { Skeleton } from "./Skeleton";
+import { Card } from "../ui";
 
 export function PerformanceCardSkeleton() {
   return (
-    <div className="rounded-lg border border-white/5 bg-card p-4">
+    <Card>
       <div className="flex items-center justify-between gap-2">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-6 w-24 rounded-md" />
@@ -16,6 +17,6 @@ export function PerformanceCardSkeleton() {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

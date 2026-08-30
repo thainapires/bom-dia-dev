@@ -57,6 +57,10 @@ export interface GitlabIssue {
   project_id: number;
   title: string;
   web_url: string;
+  state: "opened" | "closed";
+  labels: string[];
+  assignees: GitlabUser[];
+  updated_at: string;
 }
 
 export interface GitlabNote {
@@ -70,6 +74,11 @@ export interface GitlabLabelEvent {
   created_at: string;
   action: "add" | "remove";
   label: { name: string } | null;
+}
+
+export interface GitlabStateEvent {
+  created_at: string;
+  state: "opened" | "closed" | "reopened";
 }
 
 export interface GitlabTodo {
@@ -117,15 +126,6 @@ export interface ReviewItem {
   horasAberto: number;
 }
 
-// "precisaRevisar": MR aguardando sua primeira revisão.
-// "aguardandoRespostaMeus": você já deixou comentário(s) não resolvidos no
-// MR — a bola está com o autor, não precisa revisar de novo ainda.
-// "aguardandoRespostaOutros": você não tem comentário pendente, mas outro
-// reviewer/participante tem — vencedor de "aguardandoRespostaMeus" quando o
-// MR tem os dois tipos ao mesmo tempo (ver `unresolvedCommentOwnership` em
-// dashboard.ts).
-// "jaAprovado": você já aprovou e não há comentário pendente (nem seu, nem
-// de outros) — nada mais exige sua ação, só fica de referência.
 export type ReviewSituacao =
   | "precisaRevisar"
   | "aguardandoRespostaMeus"
@@ -147,9 +147,6 @@ export interface ActivityItem {
   createdAt: string;
 }
 
-// Categorias que o classificador (heurístico hoje, possivelmente LLM depois)
-// pode atribuir a uma issue com atividade no dia — usadas pra colorir a UI
-// com a mesma paleta de status já usada nos MRs.
 export type IssueUpdateCategoria =
   | "trabalhando"
   | "finalizado"
@@ -165,9 +162,14 @@ export interface IssueDayActivity {
   projectId: number;
   title: string;
   url: string;
+  currentLabels: string[];
+  currentAssignees: string[];
+  issueState: "opened" | "closed";
   hasCommit: boolean;
   labelChanges: GitlabLabelEvent[];
   comments: GitlabNote[];
+  assignmentEvents: GitlabNote[];
+  stateEvents: GitlabStateEvent[];
 }
 
 export interface IssueNarrativeItem {
@@ -179,6 +181,52 @@ export interface IssueNarrativeItem {
   categoria: IssueUpdateCategoria;
 }
 
+
+export type BoardStatus =
+  | "Blocked"
+  | "Sprint ready"
+  | "To do"
+  | "In progress"
+  | "For code review"
+  | "Code Review Failed"
+  | "For QA Deployment"
+  | "For QA Testing"
+  | "In Testing"
+  | "QA Testing Failed"
+  | "For Production Deployment"
+  | "For Production Testing"
+  | "Production Testing Failed"
+  | "Done"
+  | "Closed";
+
+export interface IssueStatusTransition {
+  from: BoardStatus | null;
+  to: BoardStatus;
+  timestamp: string;
+}
+
+export type IssueTodayRelevance = "active" | "attention" | "passive" | "none";
+
+export interface IssueStandupFact {
+  issueIid: number;
+  projectId: number;
+  title: string;
+  url: string;
+  currentStatus: BoardStatus | null;
+  statusAtPeriodStart: BoardStatus | null;
+  currentAssignees: string[];
+  isAssignedToMe: boolean;
+  wasAssignedBeforePeriod: boolean;
+  assignedDuringPeriod: string[];
+  statusTransitions: IssueStatusTransition[];
+  commentsDuringPeriod: Array<{ createdAt: string }>;
+  hasCommitDuringPeriod: boolean;
+  yesterdayFacts: string[];
+  todayFacts: string[];
+  todayRelevance: IssueTodayRelevance;
+  priority: number;
+}
+
 export interface TodoItem {
   id: number;
   text: string;
@@ -186,12 +234,29 @@ export interface TodoItem {
   createdAt: string;
 }
 
+
+export interface DailyIssueItem {
+  issueIid: number;
+  title: string;
+  url: string;
+  detail: string;
+}
+
+export interface DailyVisualStats {
+  commits: number;
+  pendencias: number;
+  issues: number;
+}
+
 export interface DailyNarrative {
   ontem: string;
   hoje: string;
   porIssue: IssueNarrativeItem[];
-  // false quando a chamada à LLM falhou e o texto veio do fallback heurístico
-  // (ver `standup.ts`).
+  ontemItems?: DailyIssueItem[];
+  hojeItems?: DailyIssueItem[];
+  stats?: DailyVisualStats;
+
+
   geradoViaLLM: boolean;
 }
 
@@ -201,6 +266,9 @@ export interface DailyEntry {
   hoje: string;
   geradoViaLLM: boolean;
   criadoEm: string;
+  ontemItems?: DailyIssueItem[];
+  hojeItems?: DailyIssueItem[];
+  stats?: DailyVisualStats;
 }
 
 export interface DesempenhoSemana {
@@ -210,10 +278,6 @@ export interface DesempenhoSemana {
   tempoMedioMergeDias: number | null;
 }
 
-// Métricas de "Seu desempenho" no dashboard — janela fixa de 14 dias (v1,
-// sem seletor de período). `variacaoPercentual` compara o tempo médio até
-// merge do período atual com os 14 dias imediatamente anteriores; fica
-// `null` quando não há MRs mergeados no período anterior pra comparar.
 export interface Desempenho {
   periodoDias: number;
   totalAbertos: number;
@@ -230,10 +294,35 @@ export interface ChecklistItem {
   position: number;
 }
 
-export interface NotesDay {
+export interface Note {
+  id: number;
   date: string;
+  title: string;
   content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NoteSummary {
+  id: number;
+  date: string;
+  title: string;
+  preview: string;
+  createdAt: string;
+}
+
+export interface DailyStats {
+  totalTasks: number;
+  completedTasks: number;
+  wordCount: number;
+  progressPercent: number;
+}
+
+export interface NotesDayResponse {
+  date: string;
+  note: Note | null;
   checklist: ChecklistItem[];
+  stats: DailyStats;
 }
 
 export interface DashboardResponse {
@@ -263,18 +352,65 @@ export interface DashboardResponse {
   todos: TodoItem[];
 }
 
-export interface WakatimeLanguage {
+export interface WakatimeDurationRankItem {
   name: string;
   percent: number;
   text: string;
+  seconds: number;
+}
+
+export type WakatimeLanguage = WakatimeDurationRankItem;
+
+export interface WakatimeDailyActivity {
+  date: string;
+  label: string;
+  fullLabel: string;
+  seconds: number;
+  text: string;
+}
+
+export interface WakatimeTimeBucket {
+  label: string;
+  seconds: number;
+  text: string;
+}
+
+export interface WakatimeAiCoding {
+  aiPercent: number;
+  humanPercent: number;
+  aiLines: number;
+  humanLines: number;
+}
+
+export interface WakatimeWeekdayActivity {
+  weekday: string;
+  shortLabel: string;
+  averageSeconds: number;
+  averageText: string;
+  sampleDays: number;
 }
 
 export interface WakatimeStats {
   range: string;
+  start: string;
+  end: string;
   totalText: string;
   dailyAverageText: string;
   bestDay: { date: string; text: string } | null;
   languages: WakatimeLanguage[];
+  dailyActivity: WakatimeDailyActivity[];
+  projects: WakatimeDurationRankItem[];
+  categories: WakatimeDurationRankItem[];
+  editors: WakatimeDurationRankItem[];
+  operatingSystems: WakatimeDurationRankItem[];
+  timeBuckets: WakatimeTimeBucket[];
+  dominantTimeBucket: WakatimeTimeBucket | null;
+  longestSession: { text: string; seconds: number; project: string | null; date: string } | null;
+  currentStreak: number;
+  longestStreak: number;
+  mostProductiveWeekday: { weekday: string; averageText: string; averageSeconds: number; sampleDays: number } | null;
+  weekdayActivity: WakatimeWeekdayActivity[];
+  aiCoding: WakatimeAiCoding | null;
 }
 
 export type WakatimeRangeKey =
@@ -283,6 +419,7 @@ export type WakatimeRangeKey =
   | "last_7_days"
   | "last_14_days"
   | "last_30_days"
+  | "last_6_months"
   | "this_week"
   | "last_week"
   | "this_month"

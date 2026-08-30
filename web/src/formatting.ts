@@ -61,6 +61,12 @@ export function addDays(isoDate: string, delta: number): string {
   return `${year}-${month}-${day}`;
 }
 
+export function formatShortDate(isoDate: string): string {
+  return anchorUTC(isoDate)
+    .toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })
+    .replace(".", "");
+}
+
 export function formatNotesDate(isoDate: string): string {
   return anchorUTC(isoDate).toLocaleDateString("pt-BR", {
     weekday: "long",
@@ -69,4 +75,14 @@ export function formatNotesDate(isoDate: string): string {
     year: "numeric",
     timeZone: "UTC",
   });
+}
+
+const COMPACT_MONTHS = [
+  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+];
+
+export function formatCompactDate(isoDate: string): string {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return `${String(day).padStart(2, "0")} ${COMPACT_MONTHS[month - 1]}, ${year}`;
 }

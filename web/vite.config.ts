@@ -4,7 +4,6 @@ import tailwindcss from "@tailwindcss/vite";
 
 const apiTarget = process.env.VITE_API_TARGET ?? "http://localhost:3001";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {

@@ -8,6 +8,7 @@ import type {
   GitlabMergeRequestDetail,
   GitlabMergeRequestSummary,
   GitlabNote,
+  GitlabStateEvent,
   GitlabTodo,
   GitlabUser,
 } from "./types";
@@ -28,19 +29,12 @@ export function getMergedMRs(limit = 10): Promise<GitlabMergeRequestSummary[]> {
   );
 }
 
-// `updated_after` é só um filtro grosseiro de pré-seleção (marca quando o MR
-// foi tocado por último, não quando foi mergeado) — quem chama precisa
-// refinar por `merged_at` no código. Usada pra "Seu desempenho" e pra gerar
-// atividade de merge fora da janela coberta por `getMergedMRs`.
 export function getMergedMRsSince(after: string): Promise<GitlabMergeRequestSummary[]> {
   return glabApi<GitlabMergeRequestSummary[]>(
     `merge_requests?scope=created_by_me&state=merged&updated_after=${after}&order_by=updated_at&sort=desc&per_page=100`,
   );
 }
 
-// `state=all` inclui MRs ainda abertos e já fechados/mergeados criados no
-// período — usada só pra contar "MRs abertos" em "Seu desempenho", não pra
-// classificação de status (que usa `getOpenMRs`).
 export function getMrsCreatedSince(after: string): Promise<GitlabMergeRequestSummary[]> {
   return glabApi<GitlabMergeRequestSummary[]>(
     `merge_requests?scope=created_by_me&state=all&created_after=${after}&per_page=100`,
@@ -77,7 +71,7 @@ export function getMrsToReview(username: string): Promise<GitlabMergeRequestSumm
 
 export function getAssignedIssues(username: string): Promise<GitlabIssue[]> {
   return glabApi<GitlabIssue[]>(
-    `issues?assignee_username=${username}&scope=all&state=opened&per_page=100`,
+    `issues?assignee_username=${username}&scope=all&state=all&order_by=updated_at&sort=desc&per_page=100`,
   );
 }
 
@@ -93,6 +87,15 @@ export function getIssueLabelEvents(
 ): Promise<GitlabLabelEvent[]> {
   return glabApi<GitlabLabelEvent[]>(
     `projects/${projectId}/issues/${iid}/resource_label_events?per_page=100`,
+  );
+}
+
+export function getIssueStateEvents(
+  projectId: number,
+  iid: number,
+): Promise<GitlabStateEvent[]> {
+  return glabApi<GitlabStateEvent[]>(
+    `projects/${projectId}/issues/${iid}/resource_state_events?per_page=100`,
   );
 }
 

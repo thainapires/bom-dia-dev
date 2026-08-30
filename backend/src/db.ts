@@ -4,10 +4,6 @@ import path from "node:path";
 
 const MIGRATIONS_DIR = path.join(__dirname, "db", "migrations");
 
-// Lazy: só conecta (e exige TURSO_DATABASE_URL) no primeiro uso real, não ao
-// importar o módulo — senão testes que importam dashboard.ts/standup.ts só
-// pelas funções puras (sem tocar no banco) quebrariam sem TURSO_DATABASE_URL
-// configurada.
 let client: Client | null = null;
 
 function getClient(): Client {
@@ -61,8 +57,6 @@ async function runMigrations(): Promise<void> {
   }
 }
 
-// Só dispara a primeira vez que alguém chama — não como efeito colateral de
-// importar este módulo (mesmo motivo do client lazy acima).
 let migrationsPromise: Promise<void> | null = null;
 
 export function migrationsReady(): Promise<void> {

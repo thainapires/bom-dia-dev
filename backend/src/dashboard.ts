@@ -5,6 +5,7 @@ import {
   getEvents,
   getIssueLabelEvents,
   getIssueNotes,
+  getIssueStateEvents,
   getMRDetail,
   getMergedMRs,
   getMergedMRsSince,
@@ -15,11 +16,12 @@ import {
   getOpenMRs,
   getTodos,
 } from "./gitlab";
-import { heuristicClassifier } from "./narrative";
+import { buildIssueNarrativeItems, buildIssueStandupFacts } from "./narrative";
 import { getOrCreateStandup } from "./standup";
 import type {
   ActivityItem,
   DashboardResponse,
+  DailyIssueItem,
   Desempenho,
   DesempenhoSemana,
   GitlabApprovals,
@@ -36,8 +38,7 @@ import type {
   TodoItem,
 } from "./types";
 
-// MR aguardando/em atenção há mais dias que isso ganha destaque visual —
-// sinal de que provavelmente foi esquecido, não só que está demorando.
+
 const DIAS_ESQUECIDO = 5;
 
 const TIMEZONE = "America/Sao_Paulo";
@@ -51,8 +52,7 @@ function toDateStr(date: Date): string {
   }).format(date);
 }
 
-// A API de eventos do GitLab trata `after`/`before` como exclusivos: para
-// pegar só o dia de ontem, `after` precisa ser anteontem e `before` hoje.
+
 function yesterdayRange(now: Date): { after: string; before: string } {
   const today = new Date(now);
   const twoDaysAgo = new Date(now);
@@ -60,10 +60,6 @@ function yesterdayRange(now: Date): { after: string; before: string } {
   return { after: toDateStr(twoDaysAgo), before: toDateStr(today) };
 }
 
-// Janela mais ampla usada pela "Atividade recente" e por "Seu desempenho" —
-// diferente da `yesterdayRange` (que continua alimentando só a narrativa de
-// "ontem"/hoje). `before` inclui o dia de hoje por completo (exclusivo do dia
-// seguinte), então days=14 cobre hoje + os 14 dias anteriores.
 function activityRange(now: Date, days: number): { after: string; before: string } {
   const start = new Date(now);
   start.setDate(start.getDate() - days);
@@ -83,26 +79,16 @@ function formatDiaMes(date: Date): string {
   return `${day} ${MESES_PT[month - 1]}`;
 }
 
-// Horas corridas desde a criação, arredondadas pra baixo — base pro texto
-// "aberto há Xh" (quando ainda não completou 24h) e pro "aberto há X dias"
-// (horasAberto / 24) exibidos no frontend.
 function hoursOpen(createdAt: Date, now: Date): number {
   return Math.floor(daysBetween(createdAt, now) * 24);
 }
 
-// `range.after` é o dia "anteontem" (ver `yesterdayRange`), excluído por
-// completo pra imitar o comportamento exclusivo do `after`/`before` da API
-// de eventos do GitLab — daí pular pro início do dia seguinte antes de
-// comparar, em vez de usar `range.after` como limite inferior direto.
 function isWithinRange(iso: string, range: { after: string; before: string }): boolean {
   const time = new Date(iso).getTime();
   const afterExclusive = new Date(range.after).getTime() + 24 * 60 * 60 * 1000;
   return time >= afterExclusive && time < new Date(range.before).getTime();
 }
 
-// Uma thread de code review conta como pendente quando tem nota(s)
-// resolvível(is) ainda não resolvida(s) — não importa quem comentou por
-// último, é sinal de code review em aberto no MR do autor.
 function hasUnresolvedComments(discussions: GitlabDiscussion[]): boolean {
   return discussions.some((discussion) =>
     discussion.notes.some((note) => note.resolvable && !note.resolved),
@@ -160,11 +146,6 @@ async function enrichMr(
   };
 }
 
-// Dono de uma pendência de review é definido nota a nota, não por discussão
-// inteira: uma nota resolvível ainda não resolvida é "minha" se eu sou a
-// autora dela, senão é "de outros". Uma mesma discussão pode ter nota minha
-// já resolvida e nota de outra pessoa ainda pendente (ou vice-versa) — por
-// isso não dá pra decidir pela discussão como um todo, só nota por nota.
 export function unresolvedCommentOwnership(
   discussions: GitlabDiscussion[],
   myUserId: number,
@@ -226,8 +207,6 @@ export async function enrichReviewItem(
   };
 }
 
-// Notas de sistema de assignment não têm campo estruturado próprio — o
-// GitLab registra como uma nota de texto tipo "assigned to @usuario".
 function isAssignmentNoteForUser(note: { system: boolean; body: string }, username: string): boolean {
   return note.system && /^assigned to/i.test(note.body) && note.body.includes(`@${username}`);
 }
@@ -251,8 +230,6 @@ function averageMergeTime(merged: GitlabMergeRequestSummary[]): string {
   return formatDias(averageMergeDays(merged));
 }
 
-// Não existe campo estruturado de "hora da aprovação" na API de approvals —
-// o jeito confiável é achar a nota de sistema que o GitLab gera ao aprovar.
 async function firstApprovalDate(mr: GitlabMergeRequestSummary): Promise<Date | null> {
   const notes = await getMrNotes(mr.project_id, mr.iid);
   const approvalNote = notes.find(
@@ -322,9 +299,10 @@ async function buildIssueActivity(
   username: string,
   range: { after: string; before: string },
 ): Promise<{ activity: Omit<IssueDayActivity, "hasCommit">; assignmentEvents: ActivityItem[] }> {
-  const [notes, labelEvents] = await Promise.all([
+  const [notes, labelEvents, stateEvents] = await Promise.all([
     getIssueNotes(issue.project_id, issue.iid),
     getIssueLabelEvents(issue.project_id, issue.iid),
+    getIssueStateEvents(issue.project_id, issue.iid),
   ]);
 
   const notesInRange = notes.filter((note) => isWithinRange(note.created_at, range));
@@ -343,8 +321,13 @@ async function buildIssueActivity(
       projectId: issue.project_id,
       title: issue.title,
       url: issue.web_url,
-      labelChanges: labelEvents.filter((change) => isWithinRange(change.created_at, range)),
+      currentLabels: issue.labels,
+      currentAssignees: issue.assignees.map((assignee) => assignee.username),
+      issueState: issue.state,
+      labelChanges: labelEvents,
       comments: notesInRange.filter((note) => !note.system),
+      assignmentEvents: notes.filter((note) => isAssignmentNoteForUser(note, username)),
+      stateEvents,
     },
     assignmentEvents,
   };
@@ -392,9 +375,22 @@ function mapEventToActivity(event: GitlabEvent): ActivityItem | null {
   }
 }
 
-// "/events" só reflete ações que a própria usuária executou — a aprovação
-// de terceiros no MR dela não aparece por lá. Por isso é sintetizada a
-// partir de `approved_by[].approved_at`, que a API de approvals já traz.
+
+function dailyIssueItemsFromFacts(
+  facts: Array<{ issueIid: number; title: string; url: string; yesterdayFacts: string[]; todayFacts: string[] }>,
+  key: "yesterdayFacts" | "todayFacts",
+): DailyIssueItem[] {
+  return facts
+    .filter((fact) => fact[key].length > 0)
+    .slice(0, 5)
+    .map((fact) => ({
+      issueIid: fact.issueIid,
+      title: fact.title,
+      url: fact.url,
+      detail: fact[key][0],
+    }));
+}
+
 function buildApprovalActivity(
   authored: Array<{ mr: GitlabMergeRequestSummary; approvals: GitlabApprovals }>,
   range: { after: string; before: string },
@@ -416,9 +412,6 @@ function inWindow(iso: string | null, start: Date, end: Date): boolean {
   return time >= start.getTime() && time < end.getTime();
 }
 
-// Janela fixa de 14 dias (v1, sem seletor de período — ver CLAUDE.md/plano).
-// `mrsCriados`/`mrsMergeados` já vêm buscados numa janela de 28 dias (atual +
-// anterior), pra dar só 2 chamadas extras à API em vez de 4.
 function buildDesempenho(
   mrsCriados: GitlabMergeRequestSummary[],
   mrsMergeados: GitlabMergeRequestSummary[],
@@ -464,12 +457,13 @@ function buildDesempenho(
 
 export async function buildDashboard(
   dateRange?: { after: string; before: string },
+  options: { standupDate?: string; persistStandup?: boolean } = {},
 ): Promise<DashboardResponse> {
   const now = new Date();
   const range = dateRange ?? yesterdayRange(now);
-  // "Atividade recente" e "Seu desempenho" usam uma janela própria de 14/28
-  // dias, independente de `range` (que continua só alimentando a narrativa
-  // de ontem/hoje e a classificação de atividade por issue).
+
+
+
   const activityWindow = activityRange(now, 14);
   const performanceWindowStart = toDateStr(new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000));
 
@@ -529,7 +523,8 @@ export async function buildDashboard(
     ...build.activity,
     hasCommit: issueHasCommit(assignedIssues[index], events, range),
   }));
-  const porIssue = await heuristicClassifier(issueDayActivities);
+  const issueFacts = buildIssueStandupFacts(issueDayActivities, user.username, range);
+  const porIssue = buildIssueNarrativeItems(issueFacts);
 
   const approvalDates = await Promise.all(mergedMRs.map(firstApprovalDate));
 
@@ -539,10 +534,10 @@ export async function buildDashboard(
     .concat(issueActivity)
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
-  // MRs autorados pela usuária cujas aprovações podem ter caído dentro da
-  // janela de atividade recente: os já abertos (aproveita o `getApprovals`
-  // que `enrichMr` já buscou) + os mergeados recentemente (busca extra,
-  // mesmo padrão de fetch em paralelo).
+
+
+
+
   const mergeadosRecentesAprovacoes = await Promise.all(
     mrsMergeados28d.map((mr) => getApprovals(mr.project_id, mr.iid)),
   );
@@ -559,19 +554,28 @@ export async function buildDashboard(
     .slice(0, 20);
 
   const desempenho = buildDesempenho(mrsCriados28d, mrsMergeados28d, now);
+  const ontemItems = dailyIssueItemsFromFacts(issueFacts, "yesterdayFacts");
+  const hojeItems = dailyIssueItemsFromFacts(issueFacts, "todayFacts");
+  const dailyStats = {
+    commits: ontem.filter((item) => item.kind === "commit").length,
+    pendencias: pronto.length + atencao.length + precisaRevisar.length + hojeItems.length,
+    issues: issueFacts.length,
+  };
 
   const standupResult = await getOrCreateStandup(
-    toDateStr(now),
+    options.standupDate ?? toDateStr(now),
     {
+      periodo: range,
       ontemActivities: ontem,
       porIssue,
+      issues: issueFacts,
       pendentes: {
         pronto: pronto.map((mr) => ({ title: mr.title })),
         atencao: atencao.map((mr) => ({ title: mr.title, motivoAtencao: mr.motivoAtencao })),
         precisaRevisar: precisaRevisar.map((mr) => ({ title: mr.title, author: mr.author })),
       },
     },
-    { persist: !dateRange },
+    { persist: options.persistStandup ?? !dateRange },
   );
 
   const summary = {
@@ -599,7 +603,7 @@ export async function buildDashboard(
     atencao,
     atividadeRecente,
     desempenho,
-    narrativa: { ...standupResult, porIssue },
+    narrativa: { ...standupResult, porIssue, ontemItems, hojeItems, stats: dailyStats },
     todos: todosRaw.map(mapTodoToItem),
   };
 }

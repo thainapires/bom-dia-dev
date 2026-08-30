@@ -1,13 +1,9 @@
 import { dbAll, dbGet, dbRun } from "./db";
-import type { ActivityItem, ActivityKind, IssueNarrativeItem, MrItem, ReviewItem } from "./types";
+import type { ActivityItem, ActivityKind, IssueNarrativeItem, IssueStandupFact, MrItem, ReviewItem } from "./types";
 
 export class StandupError extends Error {}
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-// É só 1 chamada por dia (o dia já fica cacheado em `daily_entries`), então um
-// modelo gratuito do OpenRouter é suficiente — ver lista atualizada em
-// https://openrouter.ai/models?max_price=0. Configurável via env var caso
-// esse modelo saia da lista de gratuitos ou fique indisponível.
 const MODEL = process.env.OPENROUTER_MODEL || "minimax/minimax-m3:free";
 
 export interface StandupPendentes {
@@ -17,8 +13,10 @@ export interface StandupPendentes {
 }
 
 export interface StandupInput {
+  periodo?: { after: string; before: string };
   ontemActivities: ActivityItem[];
   porIssue: IssueNarrativeItem[];
+  issues: IssueStandupFact[];
   pendentes: StandupPendentes;
 }
 
@@ -57,27 +55,38 @@ const KIND_LABELS_PT: Record<ActivityKind, string> = {
   aprovacaoRecebida: "aprovação recebida",
 };
 
-// Texto legível pro prompt — preferido a um dump de JSON cru, que costuma
-// gerar respostas mais robóticas/menos naturais do modelo.
 export function buildPromptInput(input: StandupInput): string {
   const lines: string[] = [];
 
-  lines.push("Atividade de ontem (ordem cronológica):");
-  if (input.ontemActivities.length === 0 && input.porIssue.length === 0) {
-    lines.push("- Nenhuma atividade registrada no GitLab.");
+  if (input.periodo) {
+    lines.push(`Período analisado: depois de ${input.periodo.after} e antes de ${input.periodo.before}.`);
+    lines.push("");
+  }
+
+  lines.push("Atividade comprovada no período (ordem cronológica):");
+  if (input.ontemActivities.length === 0 && input.issues.every((issue) => issue.yesterdayFacts.length === 0)) {
+    lines.push("- Nenhuma atividade comprovada no GitLab.");
   } else {
     for (const activity of input.ontemActivities) {
-      lines.push(`- [${KIND_LABELS_PT[activity.kind]}] ${activity.text}`);
+      lines.push(`- [${KIND_LABELS_PT[activity.kind]}] ${activity.text} (${activity.createdAt})`);
     }
-    for (const item of input.porIssue) {
-      lines.push(`- [issue] ${item.linha}`);
+    for (const issue of input.issues.filter((item) => item.yesterdayFacts.length > 0)) {
+      lines.push(
+        `- [issue] ${JSON.stringify({
+          title: issue.title,
+          facts: issue.yesterdayFacts,
+          transitions: issue.statusTransitions,
+          assignedDuringPeriod: issue.assignedDuringPeriod,
+        })}`,
+      );
     }
   }
 
   lines.push("");
-  lines.push("Pendências pra hoje:");
+  lines.push("Estado e trabalho relevante pra hoje:");
   const { pronto, atencao, precisaRevisar } = input.pendentes;
-  if (pronto.length === 0 && atencao.length === 0 && precisaRevisar.length === 0) {
+  const relevantIssues = input.issues.filter((issue) => issue.todayFacts.length > 0 && issue.todayRelevance !== "passive");
+  if (pronto.length === 0 && atencao.length === 0 && precisaRevisar.length === 0 && relevantIssues.length === 0) {
     lines.push("- Nada pendente no momento.");
   } else {
     for (const mr of pronto) {
@@ -89,6 +98,20 @@ export function buildPromptInput(input: StandupInput): string {
     for (const mr of precisaRevisar) {
       lines.push(`- Aguardando sua revisão: "${mr.title}" (autor: ${mr.author})`);
     }
+    for (const issue of relevantIssues) {
+      lines.push(
+        `- Issue: ${JSON.stringify({
+          title: issue.title,
+          currentStatus: issue.currentStatus,
+          statusAtPeriodStart: issue.statusAtPeriodStart,
+          relevance: issue.todayRelevance,
+          priority: issue.priority,
+          facts: issue.todayFacts,
+          wasAssignedBeforePeriod: issue.wasAssignedBeforePeriod,
+          assignedDuringPeriod: issue.assignedDuringPeriod,
+        })}`,
+      );
+    }
   }
 
   return lines.join("\n");
@@ -96,15 +119,16 @@ export function buildPromptInput(input: StandupInput): string {
 
 const SYSTEM_PROMPT = `Você ajuda a Thainá a preparar o que ela vai falar na daily standup do time dela.
 Escreva em português informal do Brasil, em primeira pessoa, como se ela estivesse falando em voz alta pro time.
-Use só os fatos fornecidos pelo usuário — nunca invente detalhes, nomes ou tarefas que não estejam na lista.
-Se não houver atividade suficiente pra um dos dois campos, diga isso de forma breve e natural, sem forçar conteúdo.
-Seja conciso: no máximo 2-3 frases por campo.
+Use só os fatos fornecidos pelo usuário — nunca invente detalhes, nomes, tarefas, causas ou transições.
+Diferencie estado atual, estado no início do período e evento com timestamp. Nunca transforme um estado atual em algo que aconteceu no período.
+Só diga que assumi, comecei, terminei, enviei pra review, voltou do QA/code review ou foi pra produção quando houver evento/transição comprovada dentro do período.
+Não diga que peguei uma issue só porque sou assignee, nem que comecei só porque está In progress, nem que enviei pra review só porque está For code review.
+Estados passivos ou sem ação clara não devem virar plano de hoje automaticamente. Quando os dados forem insuficientes, use uma formulação conservadora.
+Priorize fatos comprovados para "ontem" e trabalho realmente relevante para "hoje". Seja conciso: no máximo 2-3 frases por campo.
 
 Responda APENAS com um objeto JSON válido, sem texto antes ou depois e sem blocos de código markdown, no formato exato:
 {"ontem": "...", "hoje": "..."}`;
 
-// Extrai o primeiro `{...}` da resposta — modelos gratuitos às vezes
-// embrulham o JSON em texto ou em ```json apesar da instrução no prompt.
 function extractJsonObject(text: string): unknown {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
@@ -172,7 +196,7 @@ export function generateViaHeuristica(input: StandupInput): { ontem: string; hoj
     merge: 0,
     review: 0,
     abertura: 0,
-    issue: input.porIssue.length,
+    issue: input.issues.filter((issue) => issue.yesterdayFacts.length > 0).length,
     comentario: 0,
     aprovacaoRecebida: 0,
   };
@@ -191,6 +215,7 @@ export function generateViaHeuristica(input: StandupInput): { ontem: string; hoj
       : `Ontem eu ${joinPtBr(ontemParts)}.`;
 
   const { pronto, atencao, precisaRevisar } = input.pendentes;
+  const relevantIssues = input.issues.filter((issue) => issue.todayFacts.length > 0 && issue.todayRelevance !== "passive");
   const hojeParts: string[] = [];
   if (pronto.length > 0) hojeParts.push(`dar merge em ${pronto.length} ${pluralize(pronto.length, "MR", "MRs")}`);
   if (precisaRevisar.length > 0) {
@@ -198,6 +223,9 @@ export function generateViaHeuristica(input: StandupInput): { ontem: string; hoj
   }
   if (atencao.length > 0) {
     hojeParts.push(`resolver ${atencao.length} ${pluralize(atencao.length, "pendência", "pendências")}`);
+  }
+  if (relevantIssues.length > 0) {
+    hojeParts.push(`acompanhar ${relevantIssues.length} ${pluralize(relevantIssues.length, "issue relevante", "issues relevantes")}`);
   }
 
   const hoje = hojeParts.length === 0 ? "Hoje não tenho nada pendente por enquanto." : `Hoje pretendo ${joinPtBr(hojeParts)}.`;
@@ -222,9 +250,6 @@ async function storeEntry(date: string, result: StandupResult): Promise<void> {
   );
 }
 
-// `persist=false` é usado pelo range customizado de `/api/dashboard` (feature
-// de debug, não exposta na UI) — não deve sobrescrever o registro histórico
-// do dia corrente com uma janela de datas arbitrária.
 export async function getOrCreateStandup(
   date: string,
   input: StandupInput,
@@ -243,9 +268,9 @@ export async function getOrCreateStandup(
     if (persist) await storeEntry(date, result);
     return result;
   } catch (error) {
-    // Não persiste o fallback: se a falha for passageira (rate-limit do
-    // modelo gratuito, instabilidade momentânea), a próxima chamada do dia
-    // tenta a LLM de novo em vez de ficar presa no texto heurístico.
+  
+  
+  
     console.error(
       "[standup] Falha ao gerar via LLM, usando fallback heurístico (não persistido):",
       error instanceof Error ? error.message : error,

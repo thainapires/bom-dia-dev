@@ -1,3 +1,23 @@
+import {
+  addDays,
+  aggregateSummaryItems,
+  buildDailyActivity,
+  buildTimeBuckets,
+  buildWeekdayActivity,
+  calculateAiCoding,
+  calculateStreaks,
+  countDays,
+  dominantTimeBucket,
+  datesBetween,
+  formatDate,
+  formatDuration,
+  isDistributionUseful,
+  longestSession,
+  mostProductiveWeekday,
+  parseDate,
+  type WakatimeDurationEntry,
+  type WakatimeSummaryDay,
+} from "./wakatimeCalculations";
 import type { WakatimeRangeKey, WakatimeStats, WakatimeTimeline, WakatimeTimelineProject } from "./types";
 
 export class WakatimeError extends Error {}
@@ -12,6 +32,7 @@ const RANGE_LABELS: Record<Exclude<WakatimeRangeKey, "custom">, string> = {
   last_7_days: "últimos 7 dias",
   last_14_days: "últimos 14 dias",
   last_30_days: "últimos 30 dias",
+  last_6_months: "últimos 6 meses",
   this_week: "essa semana",
   last_week: "semana passada",
   this_month: "esse mês",
@@ -27,27 +48,7 @@ function toDateStr(date: Date): string {
   }).format(date);
 }
 
-// Wrapper de "data pura" (meio-dia UTC) pra fazer aritmética de calendário
-// sem risco de DST — a conversão pro fuso de SP já aconteceu em `toDateStr`.
-function parseDate(dateStr: string): Date {
-  const [year, month, day] = dateStr.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, day, 12));
-}
 
-function formatDate(date: Date): string {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(date.getUTCDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function addDays(date: Date, delta: number): Date {
-  const result = new Date(date);
-  result.setUTCDate(result.getUTCDate() + delta);
-  return result;
-}
-
-// Segunda-feira como início de semana.
 function startOfWeek(date: Date): Date {
   const diasDesdeSegunda = (date.getUTCDay() + 6) % 7;
   return addDays(date, -diasDesdeSegunda);
@@ -55,6 +56,12 @@ function startOfWeek(date: Date): Date {
 
 function startOfMonth(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 12));
+}
+
+function addMonths(date: Date, delta: number): Date {
+  const result = new Date(date);
+  result.setUTCMonth(result.getUTCMonth() + delta);
+  return result;
 }
 
 function endOfMonth(date: Date): Date {
@@ -108,6 +115,8 @@ function resolveRange(
       return { start: formatDate(addDays(today, -13)), end: formatDate(today), label: RANGE_LABELS.last_14_days };
     case "last_30_days":
       return { start: formatDate(addDays(today, -29)), end: formatDate(today), label: RANGE_LABELS.last_30_days };
+    case "last_6_months":
+      return { start: formatDate(addDays(addMonths(today, -6), 1)), end: formatDate(today), label: RANGE_LABELS.last_6_months };
     case "this_week":
       return { start: formatDate(startOfWeek(today)), end: formatDate(today), label: RANGE_LABELS.this_week };
     case "last_week": {
@@ -133,14 +142,6 @@ function resolveRange(
   }
 }
 
-function formatDuration(totalSeconds: number): string {
-  const totalMinutes = Math.round(totalSeconds / 60);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  if (hours === 0) return `${minutes}min`;
-  if (minutes === 0) return `${hours}h`;
-  return `${hours}h ${minutes}min`;
-}
 
 function formatBestDayLabel(dateStr: string): string {
   return new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long", timeZone: "UTC" }).format(
@@ -149,11 +150,7 @@ function formatBestDayLabel(dateStr: string): string {
 }
 
 interface WakatimeSummariesApiResponse {
-  data: Array<{
-    grand_total: { total_seconds: number };
-    languages: Array<{ name: string; total_seconds: number }>;
-    range: { date: string };
-  }>;
+  data: WakatimeSummaryDay[];
   cumulative_total: { seconds: number };
   daily_average: { seconds: number };
 }
@@ -172,65 +169,101 @@ function getApiKey(): string {
   return apiKey;
 }
 
-export async function getWakatimeStats(params: GetWakatimeStatsParams = {}): Promise<WakatimeStats> {
-  const apiKey = getApiKey();
-
-  const { start, end, label } = resolveRange(params.range ?? "last_7_days", params.start, params.end, new Date());
-
+async function fetchJson<T>(url: string, apiKey: string, errorPrefix: string): Promise<T> {
   const auth = Buffer.from(apiKey).toString("base64");
-  const query = new URLSearchParams({ start, end, timezone: TIMEZONE });
-  const response = await fetch(`${WAKATIME_API_BASE}/users/current/summaries?${query}`, {
+  const response = await fetch(url, {
     headers: { Authorization: `Basic ${auth}` },
   });
 
   if (!response.ok) {
     const body = await response.text();
-    throw new WakatimeError(`Falha ao buscar stats do Wakatime (${response.status}): ${body}`);
+    throw new WakatimeError(`${errorPrefix} (${response.status}): ${body}`);
   }
 
-  const { data, cumulative_total, daily_average } = (await response.json()) as WakatimeSummariesApiResponse;
+  return response.json() as Promise<T>;
+}
 
-  const languageSeconds = new Map<string, number>();
-  let bestDay: { date: string; seconds: number } | null = null;
+async function getDurationsForDate(apiKey: string, date: string): Promise<WakatimeDurationEntry[]> {
+  const query = new URLSearchParams({ date, timezone: TIMEZONE });
+  const { data } = await fetchJson<WakatimeDurationsApiResponse>(
+    `${WAKATIME_API_BASE}/users/current/durations?${query}`,
+    apiKey,
+    "Falha ao buscar durations do Wakatime",
+  );
+  return data;
+}
 
-  for (const day of data) {
-    const seconds = day.grand_total.total_seconds;
-    if (seconds > 0 && (!bestDay || seconds > bestDay.seconds)) {
-      bestDay = { date: day.range.date, seconds };
-    }
-    for (const lang of day.languages) {
-      languageSeconds.set(lang.name, (languageSeconds.get(lang.name) ?? 0) + lang.total_seconds);
-    }
+async function getDurationsForRange(apiKey: string, start: string, end: string): Promise<Array<{ date: string; entries: WakatimeDurationEntry[] }>> {
+  const dates = datesBetween(start, end);
+  const result: Array<{ date: string; entries: WakatimeDurationEntry[] }> = [];
+  for (let index = 0; index < dates.length; index += 5) {
+    const batch = dates.slice(index, index + 5);
+    const entries = await Promise.all(batch.map(async (date) => ({ date, entries: await getDurationsForDate(apiKey, date) })));
+    result.push(...entries);
   }
+  return result;
+}
 
-  const totalLanguageSeconds = [...languageSeconds.values()].reduce((sum, seconds) => sum + seconds, 0);
-  const languages = [...languageSeconds.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
-    .map(([name, seconds]) => ({
-      name,
-      percent: totalLanguageSeconds > 0 ? Math.round((seconds / totalLanguageSeconds) * 1000) / 10 : 0,
-      text: formatDuration(seconds),
-    }));
+export async function getWakatimeStats(params: GetWakatimeStatsParams = {}): Promise<WakatimeStats> {
+  const apiKey = getApiKey();
+
+  const { start, end, label } = resolveRange(params.range ?? "last_7_days", params.start, params.end, new Date());
+
+  const query = new URLSearchParams({ start, end, timezone: TIMEZONE });
+  const { data, cumulative_total, daily_average } = await fetchJson<WakatimeSummariesApiResponse>(
+    `${WAKATIME_API_BASE}/users/current/summaries?${query}`,
+    apiKey,
+    "Falha ao buscar stats do Wakatime",
+  );
+
+  const dailyActivity = buildDailyActivity(data, start, end);
+  const projects = aggregateSummaryItems(data, "projects");
+  const categories = aggregateSummaryItems(data, "categories");
+  const editors = aggregateSummaryItems(data, "editors");
+  const operatingSystems = aggregateSummaryItems(data, "operating_systems");
+  const aiCoding = calculateAiCoding(data);
+  const weekdayActivity = buildWeekdayActivity(dailyActivity);
+  const streaks = calculateStreaks(dailyActivity, end);
+  const durationsByDate = countDays(start, end) <= 31 ? await getDurationsForRange(apiKey, start, end) : [];
+  const durations = durationsByDate.flatMap((day) => day.entries);
+  const timeBuckets = durations.length > 0 ? buildTimeBuckets(durations, TIMEZONE) : [];
+  const dominantBucket = dominantTimeBucket(timeBuckets);
+
+  const bestDay = dailyActivity.reduce<{ date: string; seconds: number } | null>((best, day) => {
+    if (day.seconds <= 0) return best;
+    return !best || day.seconds > best.seconds ? { date: day.date, seconds: day.seconds } : best;
+  }, null);
 
   return {
     range: label,
+    start,
+    end,
     totalText: formatDuration(cumulative_total.seconds),
     dailyAverageText: formatDuration(daily_average.seconds),
     bestDay: bestDay
       ? { date: bestDay.date, text: `${formatDuration(bestDay.seconds)} — ${formatBestDayLabel(bestDay.date)}` }
       : null,
-    languages,
+    languages: aggregateSummaryItems(data, "languages", 8),
+    dailyActivity,
+    projects,
+    categories: isDistributionUseful(categories) ? categories : [],
+    editors: isDistributionUseful(editors) ? editors : [],
+    operatingSystems,
+    timeBuckets,
+    dominantTimeBucket: dominantBucket,
+    longestSession: longestSession(durationsByDate),
+    currentStreak: streaks.current,
+    longestStreak: streaks.longest,
+    mostProductiveWeekday: mostProductiveWeekday(dailyActivity),
+    weekdayActivity,
+    aiCoding,
   };
 }
 
-// Sessões separadas por menos que isso na mesma trilha viram um único bloco
-// visual — o endpoint /durations retorna um registro por heartbeat agrupado,
-// então sem essa fusão a timeline fica cheia de blocos minúsculos.
 const SESSION_MERGE_GAP_SECONDS = 5 * 60;
 
 interface WakatimeDurationsApiResponse {
-  data: Array<{ project: string | null; time: number; duration: number }>;
+  data: WakatimeDurationEntry[];
 }
 
 export interface GetWakatimeTimelineParams {
@@ -245,18 +278,12 @@ export async function getWakatimeTimeline(params: GetWakatimeTimelineParams = {}
     throw new WakatimeError("Data inválida, use o formato YYYY-MM-DD");
   }
 
-  const auth = Buffer.from(apiKey).toString("base64");
   const query = new URLSearchParams({ date, timezone: TIMEZONE });
-  const response = await fetch(`${WAKATIME_API_BASE}/users/current/durations?${query}`, {
-    headers: { Authorization: `Basic ${auth}` },
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new WakatimeError(`Falha ao buscar timeline do Wakatime (${response.status}): ${body}`);
-  }
-
-  const { data } = (await response.json()) as WakatimeDurationsApiResponse;
+  const { data } = await fetchJson<WakatimeDurationsApiResponse>(
+    `${WAKATIME_API_BASE}/users/current/durations?${query}`,
+    apiKey,
+    "Falha ao buscar timeline do Wakatime",
+  );
 
   const rangesByProject = new Map<string, Array<{ start: number; end: number }>>();
   for (const entry of data) {

@@ -2,6 +2,7 @@ import type { IconProps } from "@solar-icons/react";
 import { AltArrowDownIcon } from "@solar-icons/react/linear/alt-arrow-down";
 import type { ComponentType, ReactNode } from "react";
 import { useState } from "react";
+import { Card } from "./ui";
 
 interface CollapsibleListCardProps {
   title: string;
@@ -25,25 +26,25 @@ export function CollapsibleListCard({
   const [isOpen, setIsOpen] = useState(defaultOpen ?? count > 0);
 
   return (
-    <div className="rounded-lg bg-card p-4 border-white/5 border">
+    <Card>
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
         aria-expanded={isOpen}
-        className="flex w-full items-center justify-between gap-2 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+        className="flex w-full items-center justify-between gap-2 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-white/80">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground-soft">
           <span className={`flex h-7 w-7 flex-none items-center justify-center rounded-lg ${iconBgClass}`}>
             <Icon size={15} strokeWidth={2} className={iconColorClass} />
           </span>
           {title}
           <div className={`flex items-center justify-center h-5 w-5 rounded-full ${iconBgClass}`}>
-            <span className="text-white/30 text-xs">{count}</span>
+            <span className="text-foreground-disabled text-xs">{count}</span>
           </div>
         </h2>
         <AltArrowDownIcon
           size={16}
-          className={`flex-none text-white/40 transition-transform duration-200 ease-(--ease-out) ${isOpen ? "" : "rotate-180"}`}
+          className={`flex-none text-foreground-subtle transition-transform duration-200 ease-(--ease-out) ${isOpen ? "" : "rotate-180"}`}
         />
       </button>
       <div
@@ -53,6 +54,6 @@ export function CollapsibleListCard({
           <div className="flex max-h-64 flex-col gap-2 overflow-y-auto pt-3">{children}</div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

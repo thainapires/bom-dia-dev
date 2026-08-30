@@ -1,8 +1,3 @@
-// Script de uso único: copia os dados do arquivo SQLite local
-// (backend/data/bomdiadev.sqlite) pro banco Turso configurado em
-// TURSO_DATABASE_URL/TURSO_AUTH_TOKEN. Rodar uma vez, depois que o app já
-// tiver subido contra o Turso ao menos uma vez (pra criar o schema via
-// runMigrations em src/db.ts). Ver script "migrate-to-turso" no package.json.
 import { createClient } from "@libsql/client";
 import path from "node:path";
 

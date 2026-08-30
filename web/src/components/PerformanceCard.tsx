@@ -1,20 +1,21 @@
 import { AltArrowDownIcon } from "@solar-icons/react/linear/alt-arrow-down";
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { Desempenho } from "../types";
+import { Card } from "./ui";
 
-const COLOR_ABERTOS = "#c4b5fd";
-const COLOR_FECHADOS = "#7fb069";
-const COLOR_MELHOROU = "#7fb069";
-const COLOR_PIOROU = "#ED6081";
+const COLOR_ABERTOS = "var(--color-chart-open)";
+const COLOR_FECHADOS = "var(--color-chart-success)";
+const COLOR_MELHOROU = "var(--color-chart-success)";
+const COLOR_PIOROU = "var(--color-attention)";
 
 const tooltipStyle = {
-  background: "#19232F",
-  border: "1px solid rgba(255,255,255,0.1)",
+  background: "var(--color-chart-background)",
+  border: "1px solid var(--color-border-default)",
   borderRadius: 8,
   fontSize: 12,
 };
 
-const axisTick = { fill: "rgba(255,255,255,0.4)", fontSize: 11 };
+const axisTick = { fill: "var(--color-foreground-subtle)", fontSize: 11 };
 
 export function PerformanceCard({ desempenho }: { desempenho: Desempenho }) {
   const data = desempenho.seriePorSemana.map((semana) => ({
@@ -30,10 +31,10 @@ export function PerformanceCard({ desempenho }: { desempenho: Desempenho }) {
   const piorou = variacao !== null && variacao < 0;
 
   return (
-    <div className="rounded-lg bg-card p-4 border-white/5 border">
+    <Card>
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-white/80">Seu desempenho</h2>
-        <span className="flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-xs text-white/50">
+        <h2 className="text-sm font-semibold text-foreground-soft">Seu desempenho</h2>
+        <span className="flex items-center gap-1 rounded-md bg-surface-hover px-2 py-1 text-xs text-muted-foreground">
           Últimos {desempenho.periodoDias} dias
           <AltArrowDownIcon size={12} />
         </span>
@@ -41,15 +42,15 @@ export function PerformanceCard({ desempenho }: { desempenho: Desempenho }) {
 
       <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div className="min-w-0">
-          <p className="text-xs text-white/50 uppercase">MRs abertos vs. fechados</p>
+          <p className="text-xs text-muted-foreground uppercase">MRs abertos vs. fechados</p>
           <div className="mt-1 flex items-baseline gap-3">
             <span className="text-2xl font-semibold" style={{ color: COLOR_ABERTOS }}>
               {desempenho.totalAbertos}
-              <span className="ml-1 text-xs font-normal text-white/40">abertos</span>
+              <span className="ml-1 text-xs font-normal text-foreground-subtle">abertos</span>
             </span>
-            <span className="text-2xl font-semibold text-status-ready">
+            <span className="text-2xl font-semibold text-success">
               {desempenho.totalFechados}
-              <span className="ml-1 text-xs font-normal text-white/40">fechados</span>
+              <span className="ml-1 text-xs font-normal text-foreground-subtle">fechados</span>
             </span>
           </div>
           <div className="mt-2 h-28">
@@ -89,13 +90,13 @@ export function PerformanceCard({ desempenho }: { desempenho: Desempenho }) {
         </div>
 
         <div className="min-w-0">
-          <p className="text-xs text-white/50 uppercase">Tempo médio até merge</p>
+          <p className="text-xs text-muted-foreground uppercase">Tempo médio até merge</p>
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-2xl font-semibold text-white">{desempenho.tempoMedioMergeDiasAtual}</span>
+            <span className="text-2xl font-semibold text-foreground">{desempenho.tempoMedioMergeDiasAtual}</span>
             {variacao !== null && (
               <span
                 className="text-xs font-medium"
-                style={{ color: melhorou ? COLOR_MELHOROU : piorou ? COLOR_PIOROU : "rgba(255,255,255,0.4)" }}
+                style={{ color: melhorou ? COLOR_MELHOROU : piorou ? COLOR_PIOROU : "var(--color-foreground-subtle)" }}
               >
                 {melhorou ? "↓" : piorou ? "↑" : "→"} {Math.abs(variacao)}% vs. período anterior
               </span>
@@ -119,6 +120,6 @@ export function PerformanceCard({ desempenho }: { desempenho: Desempenho }) {
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
