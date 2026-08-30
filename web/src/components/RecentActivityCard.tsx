@@ -9,6 +9,7 @@ import { IoGitMergeOutline } from "react-icons/io5";
 import { GoGitPullRequest } from "react-icons/go";
 import { MdCommit } from "react-icons/md";
 import { TiFlowMerge } from "react-icons/ti";
+import { Card } from "./ui";
 
 const ICON_BY_KIND: Record<ActivityKind, ComponentType<IconProps>> = {
   commit: MdCommit,
@@ -42,7 +43,7 @@ const LABEL_BY_KIND: Record<ActivityKind, string> = {
 
 export function RecentActivityCard({ items }: { items: ActivityItem[] }) {
   return (
-    <div className="rounded-lg bg-surface p-4 border-border-subtle border">
+    <Card>
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold text-foreground-soft">
           Atividade recente
@@ -79,6 +80,6 @@ export function RecentActivityCard({ items }: { items: ActivityItem[] }) {
           })
         )}
       </div>
-    </div>
+    </Card>
   );
 }

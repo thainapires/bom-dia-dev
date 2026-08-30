@@ -10,6 +10,7 @@ import { PerformanceCard } from "../../components/PerformanceCard";
 import { RecentActivityCard } from "../../components/RecentActivityCard";
 import { ReviewListCard } from "../../components/ReviewListCard";
 import { SummaryCards } from "../../components/SummaryCards";
+import { Page } from "../../components/ui";
 import { ListCardSkeleton } from "../../components/skeletons/ListCardSkeleton";
 import { PerformanceCardSkeleton } from "../../components/skeletons/PerformanceCardSkeleton";
 import { RecentActivityCardSkeleton } from "../../components/skeletons/RecentActivityCardSkeleton";
@@ -49,7 +50,7 @@ export function DashboardPage() {
   const { visibleCards, diasEsquecidoLimite } = settings;
 
   return (
-    <>
+    <Page>
       <Header onRefresh={() => load(true)} isRefreshing={isLoading} lastUpdated={data?.atualizadoEm ?? null} />
 
       {error && (
@@ -182,6 +183,6 @@ export function DashboardPage() {
           </div>
         </>
       )}
-    </>
+    </Page>
   );
 }

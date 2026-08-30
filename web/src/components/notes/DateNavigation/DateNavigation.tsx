@@ -2,6 +2,7 @@ import { ArrowLeftIcon } from "@solar-icons/react/linear/arrow-left";
 import { ArrowRightIcon } from "@solar-icons/react/linear/arrow-right";
 import { CalendarDateLinearIcon } from "@solar-icons/react";
 import { DateNavigationButton } from "./DateNavigationButton";
+import { Button } from "../../ui";
 import { addDays, formatCompactDate, toISODate } from "../../../formatting";
 
 interface DateNavigationProps {
@@ -50,13 +51,9 @@ export function DateNavigation({ date, isToday, onDateChange }: DateNavigationPr
           Hoje
         </span>
       ) : (
-        <button
-          type="button"
-          onClick={handleToday}
-          className="flex-none rounded-md px-2 py-1.5 text-xs font-medium text-foreground-muted transition hover:bg-surface-selected hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        >
+        <Button variant="ghost" onClick={handleToday} className="h-8 rounded-md px-2 text-xs">
           Hoje
-        </button>
+        </Button>
       )}
     </div>
   )

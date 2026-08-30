@@ -3,6 +3,7 @@ import { RefreshIcon } from "@solar-icons/react/bold-duotone/refresh";
 import { formatHourMinute, formatRelativeDays, formatShortDate } from "../../formatting";
 import type { NoteSummary } from "../../types";
 import { FileIcon } from "@solar-icons/react/bold-duotone/file";
+import { Button, Card } from "../ui";
 
 interface RecentNotesCardProps {
   notes: NoteSummary[];
@@ -28,7 +29,7 @@ export function RecentNotesCard({
   onLoadMore,
 }: RecentNotesCardProps) {
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-4">
+    <Card>
       <h2 className="text-sm font-semibold text-foreground-soft">Notas recentes</h2>
 
       {notes.length === 0 ? (
@@ -71,16 +72,16 @@ export function RecentNotesCard({
       )}
 
       {hasMore && (
-        <button
-          type="button"
+        <Button
           onClick={onLoadMore}
           disabled={isLoadingMore}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md bg-surface-hover px-3 py-2 text-sm text-foreground-secondary transition hover:bg-surface-selected active:scale-[0.97] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          variant="secondary"
+          className="mt-3 w-full"
         >
           {isLoadingMore && <RefreshIcon size={14} className="animate-spin" />}
           Ver mais
-        </button>
+        </Button>
       )}
-    </div>
+    </Card>
   );
 }

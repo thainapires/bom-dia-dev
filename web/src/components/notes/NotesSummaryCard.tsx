@@ -5,6 +5,7 @@ import type { DailyStats } from "../../types";
 import { ClipboardCheckIcon } from "@solar-icons/react/bold/clipboard-check";
 import { ClockCircleIcon } from "@solar-icons/react/bold/clock-circle";
 import { DocumentAddIcon } from "@solar-icons/react/bold/document-add";
+import { Card } from "../ui";
 
 interface NotesSummaryCardProps {
   stats: DailyStats;
@@ -51,7 +52,7 @@ export function NotesSummaryCard({ stats }: NotesSummaryCardProps) {
   ];
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-4">
+    <Card>
       <h2 className="text-sm font-semibold text-foreground-soft">Resumo do dia</h2>
       <div className="mt-3 grid grid-cols-2 gap-3">
         {tiles.map((tile) => (
@@ -66,6 +67,6 @@ export function NotesSummaryCard({ stats }: NotesSummaryCardProps) {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

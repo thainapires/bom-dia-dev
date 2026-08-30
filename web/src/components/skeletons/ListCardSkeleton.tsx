@@ -1,8 +1,9 @@
 import { Skeleton } from "./Skeleton";
+import { Card } from "../ui";
 
 export function ListCardSkeleton({ rows = 3 }: { rows?: number }) {
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-4">
+    <Card>
       <div className="flex items-center gap-2">
         <Skeleton className="h-4 w-4 rounded-full" />
         <Skeleton className="h-4 w-32" />
@@ -21,6 +22,6 @@ export function ListCardSkeleton({ rows = 3 }: { rows?: number }) {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

@@ -19,6 +19,7 @@ import type { ChecklistItem } from "../../types";
 import { GoPlus } from "react-icons/go";
 import { FaRegEdit, FaTrash } from "react-icons/fa";
 import { MdDragIndicator } from "react-icons/md";
+import { Button, Card, IconButton, Input } from "../ui";
 
 interface ChecklistCardProps {
   checklist: ChecklistItem[];
@@ -79,7 +80,7 @@ export function ChecklistCard({
   }
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-4">
+    <Card>
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground-soft">Checklist</h2>
         <span className="text-sm text-muted-foreground">
@@ -95,20 +96,16 @@ export function ChecklistCard({
       </div>
 
       <form onSubmit={handleAddItem} className="mt-4 flex gap-2">
-        <input
+        <Input
           type="text"
           value={newItemText}
           onChange={(event) => setNewItemText(event.target.value)}
           placeholder="Adicionar item..."
-          className="min-w-0 flex-1 rounded-md border border-border-subtle bg-surface-input px-3 py-2 text-sm text-foreground placeholder:text-foreground-disabled focus:outline-none focus:ring-1 focus:ring-focus-ring"
+          className="min-w-0 flex-1 bg-surface-input"
         />
-        <button
-          type="submit"
-          title="Adicionar"
-          className="flex flex-none items-center justify-center rounded-md border border-border-subtle bg-surface-input px-3 py-2 text-foreground-soft transition hover:bg-surface-selected-strong active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        >
-          <GoPlus size={16} className="stroke-1"/>
-        </button>
+        <IconButton type="submit" title="Adicionar" className="border border-border-subtle bg-surface-input hover:bg-surface-selected-strong">
+          <GoPlus size={16} className="stroke-1" />
+        </IconButton>
       </form>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -136,16 +133,16 @@ export function ChecklistCard({
       </DndContext>
 
       {completed > 0 && (
-        <button
-          type="button"
+        <Button
           onClick={onClearCompleted}
-          className="mt-3 flex items-center gap-2 rounded-md bg-surface-hover px-3 py-2 text-xs text-muted-foreground transition hover:bg-surface-selected hover:text-foreground-secondary active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          variant="ghost"
+          icon={<FaTrash size={14} />}
+          className="mt-3 h-8 rounded-md text-xs"
         >
-          <FaTrash size={14} />
           Limpar concluídos
-        </button>
+        </Button>
       )}
-    </div>
+    </Card>
   );
 }
 

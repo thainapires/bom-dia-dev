@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { TIMEZONE, formatHourMinute, getSaoPauloHour } from "../formatting";
 import { useSettings } from "../SettingsContext";
+import { Button } from "./ui";
 
 function greeting(hour: number): string {
   if (hour < 12) return "Bom dia";
@@ -96,15 +97,10 @@ export function Header({ onRefresh, isRefreshing, lastUpdated }: HeaderProps) {
         <p className="mt-1 text-sm capitalize text-muted-foreground">{formattedDate(now)}</p>
       </div>
       <div className="flex flex-none flex-col items-end gap-1">
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          className="flex flex-none items-center gap-2 rounded-lg bg-surface px-3 py-2 text-sm text-foreground-soft transition hover:bg-surface-selected active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        >
+        <Button type="button" variant="secondary" onClick={onRefresh} disabled={isRefreshing}>
           <RefreshIcon size={16} className={isRefreshing ? "animate-spin" : ""} />
           Atualizar
-        </button>
+        </Button>
         {lastUpdated && (
           <span className="text-xs text-foreground-disabled">Atualizado às {formatHourMinute(lastUpdated)}</span>
         )}

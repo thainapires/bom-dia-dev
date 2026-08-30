@@ -1,6 +1,7 @@
 import { AltArrowDownIcon } from "@solar-icons/react/linear/alt-arrow-down";
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { Desempenho } from "../types";
+import { Card } from "./ui";
 
 const COLOR_ABERTOS = "var(--color-chart-open)";
 const COLOR_FECHADOS = "var(--color-chart-success)";
@@ -30,7 +31,7 @@ export function PerformanceCard({ desempenho }: { desempenho: Desempenho }) {
   const piorou = variacao !== null && variacao < 0;
 
   return (
-    <div className="rounded-lg bg-surface p-4 border-border-subtle border">
+    <Card>
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold text-foreground-soft">Seu desempenho</h2>
         <span className="flex items-center gap-1 rounded-md bg-surface-hover px-2 py-1 text-xs text-muted-foreground">
@@ -119,6 +120,6 @@ export function PerformanceCard({ desempenho }: { desempenho: Desempenho }) {
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

@@ -2,6 +2,7 @@ import type { IconProps } from "@solar-icons/react";
 import { AltArrowDownIcon } from "@solar-icons/react/linear/alt-arrow-down";
 import type { ComponentType, ReactNode } from "react";
 import { useState } from "react";
+import { Card } from "./ui";
 
 interface CollapsibleListCardProps {
   title: string;
@@ -25,7 +26,7 @@ export function CollapsibleListCard({
   const [isOpen, setIsOpen] = useState(defaultOpen ?? count > 0);
 
   return (
-    <div className="rounded-lg bg-surface p-4 border-border-subtle border">
+    <Card>
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
@@ -53,6 +54,6 @@ export function CollapsibleListCard({
           <div className="flex max-h-64 flex-col gap-2 overflow-y-auto pt-3">{children}</div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

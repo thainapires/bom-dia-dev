@@ -1,10 +1,12 @@
 import { ClockCircleIcon } from "@solar-icons/react/bold-duotone/clock-circle";
 import { FireIcon } from "@solar-icons/react/bold-duotone/fire";
 import { MedalStarIcon } from "@solar-icons/react/bold-duotone/medal-star";
+import { PulseIcon } from "@solar-icons/react/bold-duotone/pulse";
+import { RefreshIcon } from "@solar-icons/react/bold-duotone/refresh";
 import { useCallback, useEffect, useState } from "react";
 import { fetchWakatimeStats, fetchWakatimeTimeline } from "../../api";
-import { Header } from "../../components/Header";
 import { WakatimeTimelineCard } from "../../components/WakatimeTimelineCard";
+import { Alert, Button, Card, Input, Page, PageContent, PageHeader, Select } from "../../components/ui";
 import { addDays, toISODate } from "../../formatting";
 import type { WakatimeRangeKey, WakatimeStats, WakatimeTimeline } from "../../types";
 
@@ -69,75 +71,74 @@ export function WakatimePage() {
   }, [timelineDate]);
 
   return (
-    <>
-      <Header onRefresh={load} isRefreshing={isLoading} />
+    <Page>
+      <PageHeader
+        icon={<PulseIcon size={28} />}
+        title="Wakatime"
+        subtitle="Estatísticas de produtividade e timeline de código."
+        actions={
+          <>
+            <Button
+              onClick={load}
+              disabled={isLoading || !hasValidCustomRange}
+              variant="secondary"
+              icon={<RefreshIcon size={16} className={isLoading ? "animate-spin" : ""} />}
+            >
+              Atualizar
+            </Button>
+            <label className="flex items-center gap-2 text-sm text-foreground-secondary">
+              Período
+              <Select
+                value={range}
+                onChange={(event) => setRange(event.target.value as WakatimeRangeKey)}
+              >
+                {RANGE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value} className="bg-surface">
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+            </label>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-border-subtle bg-surface px-4 py-3">
-        <label className="flex items-center gap-2 text-sm text-foreground-secondary">
-          Período
-          <select
-            value={range}
-            onChange={(event) => setRange(event.target.value as WakatimeRangeKey)}
-            className="rounded-md border border-border-default bg-surface-hover px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-focus-ring"
-          >
-            {RANGE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value} className="bg-surface">
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            {range === "custom" && (
+              <div className="flex flex-wrap items-center gap-2 opacity-100 transition-opacity duration-150 ease-(--ease-out) starting:opacity-0">
+                <Input
+                  type="date"
+                  value={customStart}
+                  max={customEnd || undefined}
+                  onChange={(event) => setCustomStart(event.target.value)}
+                />
+                <span className="text-sm text-foreground-subtle">até</span>
+                <Input
+                  type="date"
+                  value={customEnd}
+                  min={customStart || undefined}
+                  onChange={(event) => setCustomEnd(event.target.value)}
+                />
+              </div>
+            )}
+          </>
+        }
+      />
 
-        {range === "custom" && (
-          <div className="flex flex-wrap items-center gap-2 opacity-100 transition-opacity duration-150 ease-(--ease-out) starting:opacity-0">
-            <input
-              type="date"
-              value={customStart}
-              max={customEnd || undefined}
-              onChange={(event) => setCustomStart(event.target.value)}
-              className="rounded-md border border-border-default bg-surface-hover px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-focus-ring"
-            />
-            <span className="text-sm text-foreground-subtle">até</span>
-            <input
-              type="date"
-              value={customEnd}
-              min={customStart || undefined}
-              onChange={(event) => setCustomEnd(event.target.value)}
-              className="rounded-md border border-border-default bg-surface-hover px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-focus-ring"
-            />
-          </div>
-        )}
-      </div>
+      <PageContent className="space-y-[var(--section-gap)]">
+        {error && <Alert>Não foi possível carregar os dados do Wakatime: {error}</Alert>}
 
-      {error && (
-        <div className="mt-4 rounded-lg border-l-4 border-l-attention bg-surface px-4 py-3 text-sm text-foreground-soft">
-          Não foi possível carregar os dados do Wakatime: {error}
-        </div>
-      )}
+        {timelineError && <Alert>Não foi possível carregar a timeline do Wakatime: {timelineError}</Alert>}
 
-      {timelineError && (
-        <div className="mt-4 rounded-lg border-l-4 border-l-attention bg-surface px-4 py-3 text-sm text-foreground-soft">
-          Não foi possível carregar a timeline do Wakatime: {timelineError}
-        </div>
-      )}
+        {timeline && <WakatimeTimelineCard timeline={timeline} onDateChange={setTimelineDate} />}
 
-      {timeline && (
-        <div className="mt-4">
-          <WakatimeTimelineCard timeline={timeline} onDateChange={setTimelineDate} />
-        </div>
-      )}
-
-      {data && (
-        <div className="opacity-100 transition-opacity duration-300 ease-(--ease-out) starting:opacity-0">
+        {data && (
+          <div className="opacity-100 transition-opacity duration-300 ease-(--ease-out) starting:opacity-0">
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3">
+            <Card className="px-4 py-3">
               <p className="flex items-center gap-1.5 text-xs uppercase text-muted-foreground">
                 <ClockCircleIcon size={17} className="text-primary-light" />
                 Tempo codando ({data.range})
               </p>
               <p className="mt-1 text-2xl font-semibold text-primary-light">{data.totalText}</p>
-            </div>
-            <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3">
+            </Card>
+            <Card className="px-4 py-3">
               <p className="flex items-center gap-1.5 text-xs uppercase text-muted-foreground">
                 <FireIcon size={17} className="text-pending" />
                 Média diária
@@ -145,8 +146,8 @@ export function WakatimePage() {
               <p className="mt-1 text-2xl font-semibold text-pending">
                 {data.dailyAverageText}
               </p>
-            </div>
-            <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3">
+            </Card>
+            <Card className="px-4 py-3">
               <p className="flex items-center gap-1.5 text-xs uppercase text-muted-foreground">
                 <MedalStarIcon size={17} className="text-status-neutral" />
                 Melhor dia
@@ -154,10 +155,10 @@ export function WakatimePage() {
               <p className="mt-1 text-2xl font-semibold text-foreground">
                 {data.bestDay ? data.bestDay.text : "sem dados"}
               </p>
-            </div>
+            </Card>
           </div>
 
-          <div className="mt-4 rounded-lg border border-border-subtle bg-surface p-4">
+          <Card className="mt-4">
             <h2 className="text-sm font-semibold text-foreground-soft">Linguagens</h2>
             <div className="mt-3 flex flex-col gap-3">
               {data.languages.length === 0 ? (
@@ -179,13 +180,14 @@ export function WakatimePage() {
                 ))
               )}
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
-      {!data && isLoading && !error && (
-        <p className="mt-4 text-sm text-foreground-subtle">Carregando estatísticas do Wakatime...</p>
-      )}
-    </>
+        {!data && isLoading && !error && (
+          <p className="text-sm text-foreground-subtle">Carregando estatísticas do Wakatime...</p>
+        )}
+      </PageContent>
+    </Page>
   );
 }

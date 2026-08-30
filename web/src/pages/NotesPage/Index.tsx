@@ -9,7 +9,8 @@ import { NewNoteButton } from "../../components/notes/NewNoteButton";
 import { NotesSummaryCard } from "../../components/notes/NotesSummaryCard";
 import { RecentNotesCard } from "../../components/notes/RecentNotesCard";
 import { RichTextEditor } from "../../components/notes/RichTextEditor";
-import { formatHourMinute, toISODate } from "../../formatting";
+import { Alert, Card, Page, PageContent, PageHeader } from "../../components/ui";
+import { formatHourMinute, formatNotesDate, toISODate } from "../../formatting";
 import { useChecklist } from "./useChecklist";
 import { useNoteEditor } from "./useNoteEditor";
 import { useRecentNotes } from "./useRecentNotes";
@@ -50,34 +51,32 @@ export function NotesPage() {
   const isToday = date === toISODate(new Date());
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <NotesIcon size={28} className="text-primary" />
-          <h1 className="text-2xl font-semibold text-foreground">Notas</h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <DateNavigation
-            date={date}
-            isToday={isToday}
-            onDateChange={setDate}
-          />
+    <Page>
+      <PageHeader
+        icon={<NotesIcon size={28} />}
+        title="Notas"
+        subtitle={<span className="capitalize">{formatNotesDate(date)}</span>}
+        actions={
+          <>
+            <DateNavigation
+              date={date}
+              isToday={isToday}
+              onDateChange={setDate}
+            />
 
-          <NewNoteButton
-            onClick={handleNewNote}
-            disabled={!isToday}
-          />
-        </div>
-      </div>
+            <NewNoteButton
+              onClick={handleNewNote}
+              disabled={!isToday}
+            />
+          </>
+        }
+      />
 
-      {error && (
-        <div className="mt-4 rounded-lg border-l-4 border-l-attention bg-surface px-4 py-3 text-sm text-foreground-soft">
-          {error}
-        </div>
-      )}
+      <PageContent className="space-y-[var(--section-gap)]">
+        {error && <Alert>{error}</Alert>}
 
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-lg border border-border-subtle bg-surface p-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <Card>
           <div className="flex items-center justify-between gap-2">
             <input
               value={title}
@@ -125,9 +124,9 @@ export function NotesPage() {
             </span>
             {dayData.note && <span>Editado às {formatHourMinute(dayData.note.updatedAt)}</span>}
           </div>
-        </div>
+          </Card>
 
-        <ChecklistCard
+          <ChecklistCard
           checklist={checklist}
           onAdd={handleAddChecklistItem}
           onToggle={handleToggleChecklistItem}
@@ -136,9 +135,9 @@ export function NotesPage() {
           onReorder={handleReorderChecklist}
           onClearCompleted={handleClearCompleted}
         />
-      </div>
+        </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <RecentNotesCard
           notes={recentNotes}
           hasMore={recentHasMore}
@@ -147,8 +146,9 @@ export function NotesPage() {
           onSelect={openNote}
           onLoadMore={loadMore}
         />
-        <NotesSummaryCard stats={dayData.stats} />
-      </div>
-    </div>
+          <NotesSummaryCard stats={dayData.stats} />
+        </div>
+      </PageContent>
+    </Page>
   );
 }

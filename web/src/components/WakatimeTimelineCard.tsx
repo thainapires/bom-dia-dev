@@ -3,6 +3,7 @@ import { AltArrowRightIcon } from "@solar-icons/react/bold-duotone/alt-arrow-rig
 import { Fragment, useEffect, useState } from "react";
 import { TIMEZONE, addDays, toISODate } from "../formatting";
 import type { WakatimeTimeline, WakatimeTimelineSession } from "../types";
+import { Card } from "./ui";
 
 // Paleta categórica validada contra o fundo escuro dos cards deste projeto.
 // Mantida como tokens de chart para nao misturar dataviz com status de produto.
@@ -121,7 +122,7 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
   }, [timeline.date]);
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-4">
+    <Card>
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold text-foreground-soft">Timeline do dia</h2>
         <div className="flex items-center gap-1 rounded-md bg-surface-hover px-1.5 py-1 text-xs text-foreground-muted">
@@ -266,6 +267,6 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
           </div>
         </>
       )}
-    </div>
+    </Card>
   );
 }
