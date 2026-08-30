@@ -1,10 +1,10 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
-import { DailyPage } from "./pages/DailyPage";
-import { DashboardPage } from "./pages/DashboardPage";
-import { NotesPage } from "./pages/NotesPage";
-import { SettingsPage } from "./pages/SettingsPage";
-import { WakatimePage } from "./pages/WakatimePage";
+import { DailyPage } from "./pages/DailyPage/Index";
+import { DashboardPage } from "./pages/DashboardPage/Index";
+import { NotesPage } from "./pages/NotesPage/Index";
+import { SettingsPage } from "./pages/SettingsPage/Index";
+import { WakatimePage } from "./pages/WakatimePage/Index";
 import { SettingsProvider } from "./SettingsContext";
 
 function App() {

@@ -2,11 +2,11 @@ import { ClockCircleIcon } from "@solar-icons/react/bold-duotone/clock-circle";
 import { FireIcon } from "@solar-icons/react/bold-duotone/fire";
 import { MedalStarIcon } from "@solar-icons/react/bold-duotone/medal-star";
 import { useCallback, useEffect, useState } from "react";
-import { fetchWakatimeStats, fetchWakatimeTimeline } from "../api";
-import { Header } from "../components/Header";
-import { WakatimeTimelineCard } from "../components/WakatimeTimelineCard";
-import { addDays, toISODate } from "../formatting";
-import type { WakatimeRangeKey, WakatimeStats, WakatimeTimeline } from "../types";
+import { fetchWakatimeStats, fetchWakatimeTimeline } from "../../api";
+import { Header } from "../../components/Header";
+import { WakatimeTimelineCard } from "../../components/WakatimeTimelineCard";
+import { addDays, toISODate } from "../../formatting";
+import type { WakatimeRangeKey, WakatimeStats, WakatimeTimeline } from "../../types";
 
 const RANGE_OPTIONS: Array<{ value: WakatimeRangeKey; label: string }> = [
   { value: "today", label: "Hoje" },

@@ -1,4 +1,5 @@
 import { AddCircleIcon } from "@solar-icons/react/bold-duotone/add-circle";
+import { GoPlus } from "react-icons/go";
 interface NewNoteButtonProps {
   onClick: () => void
   disabled?: boolean
@@ -16,7 +17,7 @@ export function NewNoteButton({
       title={disabled ? "Só é possível criar notas para hoje" : undefined}
       className="flex flex-none items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition hover:bg-primary/90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
     >
-      <AddCircleIcon size={16} />
+      <GoPlus size={16} className="stroke-1"/>
       Nova nota
     </button>
   )

@@ -112,7 +112,7 @@ export function ChecklistCard({
           title="Adicionar"
           className="flex flex-none items-center justify-center rounded-md border border-white/5 bg-card-input px-3 py-2 text-white/80 transition hover:bg-white/20 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
-          <GoPlus size={16} style={{ strokeWidth: '0.2px', stroke: 'currentColor' }}/>
+          <GoPlus size={16} className="stroke-1"/>
         </button>
       </form>
 

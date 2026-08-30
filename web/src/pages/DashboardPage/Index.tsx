@@ -3,20 +3,20 @@ import { RestartIcon } from '@solar-icons/react/linear/restart'
 import { BellIcon } from '@solar-icons/react/linear/bell'
 import { DangerTriangleIcon } from '@solar-icons/react/linear/danger-triangle'
 import { useCallback, useEffect, useState } from "react";
-import { fetchDashboard } from "../api";
-import { Header } from "../components/Header";
-import { MrListCard } from "../components/MrListCard";
-import { PerformanceCard } from "../components/PerformanceCard";
-import { RecentActivityCard } from "../components/RecentActivityCard";
-import { ReviewListCard } from "../components/ReviewListCard";
-import { SummaryCards } from "../components/SummaryCards";
-import { ListCardSkeleton } from "../components/skeletons/ListCardSkeleton";
-import { PerformanceCardSkeleton } from "../components/skeletons/PerformanceCardSkeleton";
-import { RecentActivityCardSkeleton } from "../components/skeletons/RecentActivityCardSkeleton";
-import { Skeleton } from "../components/skeletons/Skeleton";
-import { SummaryCardsSkeleton } from "../components/skeletons/SummaryCardsSkeleton";
-import { useSettings } from "../SettingsContext";
-import type { DashboardResponse, MrItem } from "../types";
+import { fetchDashboard } from "../../api";
+import { Header } from "../../components/Header";
+import { MrListCard } from "../../components/MrListCard";
+import { PerformanceCard } from "../../components/PerformanceCard";
+import { RecentActivityCard } from "../../components/RecentActivityCard";
+import { ReviewListCard } from "../../components/ReviewListCard";
+import { SummaryCards } from "../../components/SummaryCards";
+import { ListCardSkeleton } from "../../components/skeletons/ListCardSkeleton";
+import { PerformanceCardSkeleton } from "../../components/skeletons/PerformanceCardSkeleton";
+import { RecentActivityCardSkeleton } from "../../components/skeletons/RecentActivityCardSkeleton";
+import { Skeleton } from "../../components/skeletons/Skeleton";
+import { SummaryCardsSkeleton } from "../../components/skeletons/SummaryCardsSkeleton";
+import { useSettings } from "../../SettingsContext";
+import type { DashboardResponse, MrItem } from "../../types";
 import { CheckCircleIcon } from '@solar-icons/react/linear/check-circle'
 
 function applyEsquecidoThreshold(items: MrItem[], limite: number): MrItem[] {

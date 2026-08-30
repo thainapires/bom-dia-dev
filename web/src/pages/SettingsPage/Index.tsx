@@ -1,6 +1,6 @@
 import { RefreshIcon } from "@solar-icons/react/bold-duotone/refresh";
-import { useSettings } from "../SettingsContext";
-import type { VisibleCards } from "../settings";
+import { useSettings } from "../../SettingsContext";
+import type { VisibleCards } from "../../settings";
 
 const CARD_LABELS: Record<keyof VisibleCards, string> = {
   pronto: "Pronto pra merge",

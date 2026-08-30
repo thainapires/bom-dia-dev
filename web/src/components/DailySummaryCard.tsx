@@ -14,7 +14,7 @@ export function DailySummaryCard({ entry }: { entry: DailyEntry }) {
   };
 
   return (
-    <div className="rounded-lg bg-card p-5 border-white/5 border">
+    <div className="rounded-lg bg-card p-5 border-white/5 border mt-4">
       <div className="flex items-start justify-between gap-3">
         <h2 className="text-sm font-semibold text-white/80">
           <span className="mr-2 inline-block h-2 w-2 rounded-full bg-status-neutral" />

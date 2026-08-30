@@ -1,9 +1,7 @@
 import { AltArrowRightIcon } from "@solar-icons/react/linear/alt-arrow-right";
-import { NotesIcon } from "@solar-icons/react/linear/notes";
 import { RefreshIcon } from "@solar-icons/react/bold-duotone/refresh";
 import { formatHourMinute, formatRelativeDays, formatShortDate } from "../../formatting";
 import type { NoteSummary } from "../../types";
-import { NotesBoldIcon } from "@solar-icons/react";
 import { FileIcon } from "@solar-icons/react/bold-duotone/file";
 
 interface RecentNotesCardProps {

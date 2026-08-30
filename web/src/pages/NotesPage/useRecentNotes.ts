@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchRecentNotes } from "../../api";
 import type { Note, NoteSummary } from "../../types";
 
-const RECENT_PAGE_SIZE = 5;
+const RECENT_PAGE_SIZE = 4;
 
 function htmlToPreview(html: string): string {
   return html

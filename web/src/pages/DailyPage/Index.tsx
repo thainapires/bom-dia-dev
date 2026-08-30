@@ -1,11 +1,13 @@
 import { ArrowLeftIcon } from "@solar-icons/react/linear/arrow-left";
 import { ArrowRightIcon } from "@solar-icons/react/linear/arrow-right";
 import { useEffect, useState } from "react";
-import { fetchDailyDates, fetchDailyEntry } from "../api";
-import { DailySummaryCard } from "../components/DailySummaryCard";
-import { Skeleton } from "../components/skeletons/Skeleton";
-import { addDays, formatNotesDate, toISODate } from "../formatting";
-import type { DailyEntry } from "../types";
+import { fetchDailyDates, fetchDailyEntry } from "../../api";
+import { DailySummaryCard } from "../../components/DailySummaryCard";
+import { Skeleton } from "../../components/skeletons/Skeleton";
+import { addDays, formatNotesDate, toISODate } from "../../formatting";
+import type { DailyEntry } from "../../types";
+import { ChatLineIcon } from "@solar-icons/react/bold/chat-line";
+import { ChatRoundLineIcon } from "@solar-icons/react/bold/chat-round-line";
 
 export function DailyPage() {
   const [date, setDate] = useState(() => toISODate(new Date()));
@@ -46,7 +48,10 @@ export function DailyPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-white sm:text-2xl">Daily</h1>
+          <div className="flex items-center gap-2">
+            <ChatRoundLineIcon size={28} className="text-primary" />
+            <h1 className="text-2xl font-semibold text-white">Daily</h1>
+          </div>
           <p className="mt-1 text-sm capitalize text-white/50">{formatNotesDate(date)}</p>
         </div>
         <div className="flex items-center gap-2">
