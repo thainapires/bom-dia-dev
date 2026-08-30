@@ -126,15 +126,6 @@ export interface ReviewItem {
   horasAberto: number;
 }
 
-// "precisaRevisar": MR aguardando sua primeira revisão.
-// "aguardandoRespostaMeus": você já deixou comentário(s) não resolvidos no
-// MR — a bola está com o autor, não precisa revisar de novo ainda.
-// "aguardandoRespostaOutros": você não tem comentário pendente, mas outro
-// reviewer/participante tem — vencedor de "aguardandoRespostaMeus" quando o
-// MR tem os dois tipos ao mesmo tempo (ver `unresolvedCommentOwnership` em
-// dashboard.ts).
-// "jaAprovado": você já aprovou e não há comentário pendente (nem seu, nem
-// de outros) — nada mais exige sua ação, só fica de referência.
 export type ReviewSituacao =
   | "precisaRevisar"
   | "aguardandoRespostaMeus"
@@ -156,9 +147,6 @@ export interface ActivityItem {
   createdAt: string;
 }
 
-// Categorias que o classificador (heurístico hoje, possivelmente LLM depois)
-// pode atribuir a uma issue com atividade no dia — usadas pra colorir a UI
-// com a mesma paleta de status já usada nos MRs.
 export type IssueUpdateCategoria =
   | "trabalhando"
   | "finalizado"
@@ -267,8 +255,8 @@ export interface DailyNarrative {
   ontemItems?: DailyIssueItem[];
   hojeItems?: DailyIssueItem[];
   stats?: DailyVisualStats;
-  // false quando a chamada à LLM falhou e o texto veio do fallback heurístico
-  // (ver `standup.ts`).
+
+
   geradoViaLLM: boolean;
 }
 
@@ -290,10 +278,6 @@ export interface DesempenhoSemana {
   tempoMedioMergeDias: number | null;
 }
 
-// Métricas de "Seu desempenho" no dashboard — janela fixa de 14 dias (v1,
-// sem seletor de período). `variacaoPercentual` compara o tempo médio até
-// merge do período atual com os 14 dias imediatamente anteriores; fica
-// `null` quando não há MRs mergeados no período anterior pra comparar.
 export interface Desempenho {
   periodoDias: number;
   totalAbertos: number;
@@ -368,18 +352,65 @@ export interface DashboardResponse {
   todos: TodoItem[];
 }
 
-export interface WakatimeLanguage {
+export interface WakatimeDurationRankItem {
   name: string;
   percent: number;
   text: string;
+  seconds: number;
+}
+
+export type WakatimeLanguage = WakatimeDurationRankItem;
+
+export interface WakatimeDailyActivity {
+  date: string;
+  label: string;
+  fullLabel: string;
+  seconds: number;
+  text: string;
+}
+
+export interface WakatimeTimeBucket {
+  label: string;
+  seconds: number;
+  text: string;
+}
+
+export interface WakatimeAiCoding {
+  aiPercent: number;
+  humanPercent: number;
+  aiLines: number;
+  humanLines: number;
+}
+
+export interface WakatimeWeekdayActivity {
+  weekday: string;
+  shortLabel: string;
+  averageSeconds: number;
+  averageText: string;
+  sampleDays: number;
 }
 
 export interface WakatimeStats {
   range: string;
+  start: string;
+  end: string;
   totalText: string;
   dailyAverageText: string;
   bestDay: { date: string; text: string } | null;
   languages: WakatimeLanguage[];
+  dailyActivity: WakatimeDailyActivity[];
+  projects: WakatimeDurationRankItem[];
+  categories: WakatimeDurationRankItem[];
+  editors: WakatimeDurationRankItem[];
+  operatingSystems: WakatimeDurationRankItem[];
+  timeBuckets: WakatimeTimeBucket[];
+  dominantTimeBucket: WakatimeTimeBucket | null;
+  longestSession: { text: string; seconds: number; project: string | null; date: string } | null;
+  currentStreak: number;
+  longestStreak: number;
+  mostProductiveWeekday: { weekday: string; averageText: string; averageSeconds: number; sampleDays: number } | null;
+  weekdayActivity: WakatimeWeekdayActivity[];
+  aiCoding: WakatimeAiCoding | null;
 }
 
 export type WakatimeRangeKey =
@@ -388,6 +419,7 @@ export type WakatimeRangeKey =
   | "last_7_days"
   | "last_14_days"
   | "last_30_days"
+  | "last_6_months"
   | "this_week"
   | "last_week"
   | "this_month"

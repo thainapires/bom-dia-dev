@@ -7,9 +7,6 @@ const DEFAULT_RECENT_LIMIT = 5;
 
 export const notesRouter = Router();
 
-// Conteúdo salvo antes do editor rich-text era texto puro (sem tags). Em vez
-// de migrar os dados, envolve em HTML só na hora de servir — no primeiro
-// save pelo editor novo o conteúdo já vira HTML de verdade.
 function ensureHtml(content: string): string {
   if (content.includes("<")) return content;
   if (!content.trim()) return "";
@@ -133,7 +130,6 @@ function todayStr(): string {
   }).format(new Date());
 }
 
-// Rotas literais antes de "/:id" — senão "/recent" seria capturado como id.
 notesRouter.get("/recent", async (req, res) => {
   const limit = Math.min(Math.max(Number(req.query.limit) || DEFAULT_RECENT_LIMIT, 1), 50);
   const beforeId = req.query.beforeId ? Number(req.query.beforeId) : null;

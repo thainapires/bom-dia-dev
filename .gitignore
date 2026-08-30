@@ -8,4 +8,3 @@ build/
 backend/data/
 .claude/skills*
 CLAUDE.md
-storybook-static/

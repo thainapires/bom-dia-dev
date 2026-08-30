@@ -180,18 +180,65 @@ export interface DashboardResponse {
   todos: TodoItem[];
 }
 
-export interface WakatimeLanguage {
+export interface WakatimeDurationRankItem {
   name: string;
   percent: number;
   text: string;
+  seconds: number;
+}
+
+export type WakatimeLanguage = WakatimeDurationRankItem;
+
+export interface WakatimeDailyActivity {
+  date: string;
+  label: string;
+  fullLabel: string;
+  seconds: number;
+  text: string;
+}
+
+export interface WakatimeTimeBucket {
+  label: string;
+  seconds: number;
+  text: string;
+}
+
+export interface WakatimeAiCoding {
+  aiPercent: number;
+  humanPercent: number;
+  aiLines: number;
+  humanLines: number;
+}
+
+export interface WakatimeWeekdayActivity {
+  weekday: string;
+  shortLabel: string;
+  averageSeconds: number;
+  averageText: string;
+  sampleDays: number;
 }
 
 export interface WakatimeStats {
   range: string;
+  start: string;
+  end: string;
   totalText: string;
   dailyAverageText: string;
   bestDay: { date: string; text: string } | null;
   languages: WakatimeLanguage[];
+  dailyActivity: WakatimeDailyActivity[];
+  projects: WakatimeDurationRankItem[];
+  categories: WakatimeDurationRankItem[];
+  editors: WakatimeDurationRankItem[];
+  operatingSystems: WakatimeDurationRankItem[];
+  timeBuckets: WakatimeTimeBucket[];
+  dominantTimeBucket: WakatimeTimeBucket | null;
+  longestSession: { text: string; seconds: number; project: string | null; date: string } | null;
+  currentStreak: number;
+  longestStreak: number;
+  mostProductiveWeekday: { weekday: string; averageText: string; averageSeconds: number; sampleDays: number } | null;
+  weekdayActivity: WakatimeWeekdayActivity[];
+  aiCoding: WakatimeAiCoding | null;
 }
 
 export type WakatimeRangeKey =
@@ -200,6 +247,7 @@ export type WakatimeRangeKey =
   | "last_7_days"
   | "last_14_days"
   | "last_30_days"
+  | "last_6_months"
   | "this_week"
   | "last_week"
   | "this_month"

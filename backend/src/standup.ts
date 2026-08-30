@@ -4,10 +4,6 @@ import type { ActivityItem, ActivityKind, IssueNarrativeItem, IssueStandupFact, 
 export class StandupError extends Error {}
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-// É só 1 chamada por dia (o dia já fica cacheado em `daily_entries`), então um
-// modelo gratuito do OpenRouter é suficiente — ver lista atualizada em
-// https://openrouter.ai/models?max_price=0. Configurável via env var caso
-// esse modelo saia da lista de gratuitos ou fique indisponível.
 const MODEL = process.env.OPENROUTER_MODEL || "minimax/minimax-m3:free";
 
 export interface StandupPendentes {
@@ -59,8 +55,6 @@ const KIND_LABELS_PT: Record<ActivityKind, string> = {
   aprovacaoRecebida: "aprovação recebida",
 };
 
-// Texto legível pro prompt — preferido a um dump de JSON cru, que costuma
-// gerar respostas mais robóticas/menos naturais do modelo.
 export function buildPromptInput(input: StandupInput): string {
   const lines: string[] = [];
 
@@ -135,8 +129,6 @@ Priorize fatos comprovados para "ontem" e trabalho realmente relevante para "hoj
 Responda APENAS com um objeto JSON válido, sem texto antes ou depois e sem blocos de código markdown, no formato exato:
 {"ontem": "...", "hoje": "..."}`;
 
-// Extrai o primeiro `{...}` da resposta — modelos gratuitos às vezes
-// embrulham o JSON em texto ou em ```json apesar da instrução no prompt.
 function extractJsonObject(text: string): unknown {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
@@ -258,9 +250,6 @@ async function storeEntry(date: string, result: StandupResult): Promise<void> {
   );
 }
 
-// `persist=false` é usado pelo range customizado de `/api/dashboard` (feature
-// de debug, não exposta na UI) — não deve sobrescrever o registro histórico
-// do dia corrente com uma janela de datas arbitrária.
 export async function getOrCreateStandup(
   date: string,
   input: StandupInput,
@@ -279,9 +268,9 @@ export async function getOrCreateStandup(
     if (persist) await storeEntry(date, result);
     return result;
   } catch (error) {
-    // Não persiste o fallback: se a falha for passageira (rate-limit do
-    // modelo gratuito, instabilidade momentânea), a próxima chamada do dia
-    // tenta a LLM de novo em vez de ficar presa no texto heurístico.
+  
+  
+  
     console.error(
       "[standup] Falha ao gerar via LLM, usando fallback heurístico (não persistido):",
       error instanceof Error ? error.message : error,

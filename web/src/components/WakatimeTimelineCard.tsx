@@ -5,9 +5,6 @@ import { TIMEZONE, addDays, toISODate } from "../formatting";
 import type { WakatimeTimeline, WakatimeTimelineSession } from "../types";
 import { Card } from "./ui";
 
-// Paleta categórica validada contra o fundo escuro dos cards deste projeto.
-// Mantida como tokens de chart para nao misturar dataviz com status de produto.
-// Ordem fixa, nunca ciclada: o 9º projeto em diante vira "Outros".
 const PALETTE = [
   "var(--color-chart-series-1)",
   "var(--color-chart-series-2)",

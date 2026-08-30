@@ -45,9 +45,6 @@ function approvals(approvedByMe: boolean): GitlabApprovals {
   };
 }
 
-// Cenários de prioridade descritos no pedido: meu comentário pendente
-// sempre vence, "de outros" só quando o meu já está resolvido, e "nenhum"
-// quando está tudo resolvido.
 describe("unresolvedCommentOwnership", () => {
   it("comentário meu pendente + de outra pessoa pendente -> mine=true, others=true", () => {
     const discussions = [discussao([nota(ME, false), nota(OUTRA_PESSOA, false)])];

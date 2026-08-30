@@ -44,8 +44,6 @@ export function fetchWakatimeTimeline(date: string): Promise<WakatimeTimeline> {
   return fetch(`/api/wakatime/timeline?date=${date}`).then((res) => handleJson<WakatimeTimeline>(res));
 }
 
-// `null` significa "sem registro pra essa data" (404) — não é um erro a
-// exibir, é o estado natural de dias sem daily gerada ainda.
 export async function fetchDailyEntry(date: string): Promise<DailyEntry | null> {
   const response = await fetch(`/api/daily/${date}`);
   if (response.status === 404) return null;

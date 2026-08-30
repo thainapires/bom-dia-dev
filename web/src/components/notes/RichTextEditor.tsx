@@ -8,9 +8,6 @@ import { MdFormatBold, MdFormatItalic, MdFormatListBulleted, MdFormatListNumbere
 const TOOLBAR_BUTTON_CLASS =
   "flex h-8 w-8 items-center justify-center rounded-md text-foreground-muted transition hover:bg-surface-selected hover:text-foreground active:scale-[0.92] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
-// Hoisted (referência estável) pelo mesmo motivo do `extensions` memoizado
-// abaixo — o useEditor do Tiptap recria a view sempre que esse objeto muda
-// de referência entre renders.
 const EDITOR_PROPS = {
   attributes: {
     class:
@@ -33,17 +30,13 @@ export function RichTextEditor({
   placeholder = "Escreva algo...",
   disabled,
 }: RichTextEditorProps) {
-  // Precisa ser memoizado: o useEditor do Tiptap compara `extensions` por
-  // referência a cada render e chama `setOptions` (recriando a view/perdendo
-  // foco) sempre que o array é uma instância nova — o que aconteceria em
-  // todo render se essas extensões fossem recriadas inline aqui.
+
   const extensions = useMemo(
     () => [
       StarterKit.configure({ link: { openOnClick: false, autolink: true } }),
       Placeholder.configure({ placeholder }),
       CharacterCount,
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
@@ -62,9 +55,6 @@ export function RichTextEditor({
   });
 
   useEffect(() => {
-    // O Tiptap só aplica a opção `editable` na criação do editor — mudanças
-    // posteriores precisam de `setEditable()` explícito, senão o editor fica
-    // preso pra sempre no estado (des)habilitado inicial.
     editor?.setEditable(!disabled);
   }, [editor, disabled]);
 
@@ -74,7 +64,6 @@ export function RichTextEditor({
       editor.storage.characterCount.words(),
       editor.storage.characterCount.characters(),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor]);
 
   if (!editor) return null;

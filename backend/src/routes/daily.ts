@@ -65,14 +65,6 @@ dailyRouter.get("/:date", async (req, res) => {
 
   let entry: DailyEntry | null = await getDailyEntry(date);
 
-  // Só gera na hora pro dia de hoje — dias passados sem registro ficam
-  // mesmo sem histórico (ver CLAUDE.md: sem backfill de dias anteriores ao
-  // início dessa feature).
-  //
-  // Usa o retorno de `buildDashboard` diretamente em vez de reler do banco:
-  // quando a LLM falha, o fallback heurístico não é persistido (ver
-  // `standup.ts`), então uma releitura aqui voltaria vazia mesmo com um
-  // resultado válido em mãos.
   if (!entry && date === todayStr()) {
     await respondWithGitlabErrors(res, async () => entryFromDashboard(date, await buildDashboard()));
     return;
