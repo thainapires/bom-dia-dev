@@ -416,11 +416,27 @@ function buildDesempenho(
   mrsCriados: GitlabMergeRequestSummary[],
   mrsMergeados: GitlabMergeRequestSummary[],
   now: Date,
+  performanceRange: { days?: number; start?: string; end?: string } = {},
 ): Desempenho {
-  const periodoDias = 14;
-  const currentStart = new Date(now.getTime() - periodoDias * 24 * 60 * 60 * 1000);
-  const previousStart = new Date(now.getTime() - periodoDias * 2 * 24 * 60 * 60 * 1000);
-  const windowEnd = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const requestedDays = Number.isInteger(performanceRange.days) && performanceRange.days && performanceRange.days > 0
+    ? performanceRange.days
+    : 7;
+  const customStart = performanceRange.start && /^\d{4}-\d{2}-\d{2}$/.test(performanceRange.start)
+    ? new Date(`${performanceRange.start}T00:00:00`)
+    : null;
+  const customEnd = performanceRange.end && /^\d{4}-\d{2}-\d{2}$/.test(performanceRange.end)
+    ? new Date(`${performanceRange.end}T23:59:59.999`)
+    : null;
+  const hasCustomRange = customStart !== null && customEnd !== null && customStart <= customEnd;
+  const periodoDias = hasCustomRange
+    ? Math.max(1, Math.round((customEnd!.getTime() - customStart!.getTime()) / (24 * 60 * 60 * 1000)) + 1)
+    : requestedDays;
+  const currentStart = hasCustomRange ? customStart! : new Date(now.getTime() - (periodoDias - 1) * 24 * 60 * 60 * 1000);
+  const previousStart = new Date(currentStart.getTime() - periodoDias * 24 * 60 * 60 * 1000);
+  const windowEnd = hasCustomRange ? new Date(customEnd!.getTime() + 1) : new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const periodoLabel = hasCustomRange
+    ? `${currentStart.toLocaleDateString("pt-BR")} - ${customEnd!.toLocaleDateString("pt-BR")}`
+    : `Últimos ${periodoDias} dias`;
 
   const criadosAtual = mrsCriados.filter((mr) => inWindow(mr.created_at, currentStart, windowEnd));
   const mergeadosAtual = mrsMergeados.filter((mr) => inWindow(mr.merged_at, currentStart, windowEnd));
@@ -433,9 +449,9 @@ function buildDesempenho(
       ? Math.round(((tempoMedioAnteriorDias - tempoMedioAtualDias) / tempoMedioAnteriorDias) * 100)
       : null;
 
-  const seriePorSemana: DesempenhoSemana[] = [0, 1].map((semanaIndex) => {
+  const seriePorSemana: DesempenhoSemana[] = Array.from({ length: Math.ceil(periodoDias / 7) }, (_, semanaIndex) => {
     const inicio = new Date(currentStart.getTime() + semanaIndex * 7 * 24 * 60 * 60 * 1000);
-    const fim = new Date(inicio.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const fim = new Date(Math.min(inicio.getTime() + 7 * 24 * 60 * 60 * 1000, windowEnd.getTime()));
     const fechadosSemana = mergeadosAtual.filter((mr) => inWindow(mr.merged_at, inicio, fim));
     return {
       inicio: formatDiaMes(inicio),
@@ -447,9 +463,12 @@ function buildDesempenho(
 
   return {
     periodoDias,
+    periodoLabel,
     totalAbertos: criadosAtual.length,
     totalFechados: mergeadosAtual.length,
     tempoMedioMergeDiasAtual: formatDias(tempoMedioAtualDias),
+    tempoMedioMergeDiasAtualValor: tempoMedioAtualDias,
+    tempoMedioMergeDiasAnteriorValor: tempoMedioAnteriorDias,
     variacaoPercentual,
     seriePorSemana,
   };
@@ -457,7 +476,11 @@ function buildDesempenho(
 
 export async function buildDashboard(
   dateRange?: { after: string; before: string },
-  options: { standupDate?: string; persistStandup?: boolean } = {},
+  options: {
+    standupDate?: string;
+    persistStandup?: boolean;
+    performanceRange?: { days?: number; start?: string; end?: string };
+  } = {},
 ): Promise<DashboardResponse> {
   const now = new Date();
   const range = dateRange ?? yesterdayRange(now);
@@ -465,7 +488,24 @@ export async function buildDashboard(
 
 
   const activityWindow = activityRange(now, 14);
-  const performanceWindowStart = toDateStr(new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000));
+  const selectedPerformanceRange = options.performanceRange ?? {};
+  const performanceDays = Number.isInteger(selectedPerformanceRange.days) && selectedPerformanceRange.days && selectedPerformanceRange.days > 0
+    ? selectedPerformanceRange.days
+    : 7;
+  const customPerformanceStart = selectedPerformanceRange.start && /^\d{4}-\d{2}-\d{2}$/.test(selectedPerformanceRange.start)
+    ? new Date(selectedPerformanceRange.start + "T00:00:00")
+    : null;
+  const customPerformanceEnd = selectedPerformanceRange.end && /^\d{4}-\d{2}-\d{2}$/.test(selectedPerformanceRange.end)
+    ? new Date(selectedPerformanceRange.end + "T23:59:59.999")
+    : null;
+  const hasCustomPerformanceRange = customPerformanceStart !== null && customPerformanceEnd !== null && customPerformanceStart <= customPerformanceEnd;
+  const currentPerformanceStart = hasCustomPerformanceRange
+    ? customPerformanceStart!
+    : new Date(now.getTime() - (performanceDays - 1) * 24 * 60 * 60 * 1000);
+  const currentPerformanceDays = hasCustomPerformanceRange
+    ? Math.max(1, Math.round((customPerformanceEnd!.getTime() - currentPerformanceStart.getTime()) / (24 * 60 * 60 * 1000)) + 1)
+    : performanceDays;
+  const performanceWindowStart = toDateStr(new Date(currentPerformanceStart.getTime() - currentPerformanceDays * 24 * 60 * 60 * 1000));
 
   const user = await getCurrentUser();
 
@@ -553,7 +593,7 @@ export async function buildDashboard(
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 20);
 
-  const desempenho = buildDesempenho(mrsCriados28d, mrsMergeados28d, now);
+  const desempenho = buildDesempenho(mrsCriados28d, mrsMergeados28d, now, options.performanceRange);
   const ontemItems = dailyIssueItemsFromFacts(issueFacts, "yesterdayFacts");
   const hojeItems = dailyIssueItemsFromFacts(issueFacts, "todayFacts");
   const dailyStats = {

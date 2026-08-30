@@ -9,7 +9,7 @@ import { Cell, Pie, PieChart, Bar, BarChart, CartesianGrid, ResponsiveContainer,
 import { FaApple, FaDesktop, FaLinux, FaRedhat, FaUbuntu, FaWindows } from "react-icons/fa";
 import { VscVscode } from "react-icons/vsc";
 import { LuMonitor } from "react-icons/lu";
-import { SiAndroidstudio, SiClaudecode, SiCodesandbox, SiCursor, SiIntellijidea, SiNeovim, SiPhpstorm, SiSublimetext, SiVim, SiWebstorm, SiXcode, SiZedindustries } from "react-icons/si";
+import { SiAndroidstudio, SiClaudecode, SiCursor, SiIntellijidea, SiNeovim, SiPhpstorm, SiSublimetext, SiVim, SiWebstorm, SiXcode, SiZedindustries } from "react-icons/si";
 import type { WakatimeDailyActivity, WakatimeDurationRankItem, WakatimeStats, WakatimeTimeBucket } from "../types";
 import { Button, Card } from "./ui";
 import { BoltIcon } from "@solar-icons/react/bold/bolt";

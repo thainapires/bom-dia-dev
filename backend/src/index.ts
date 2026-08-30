@@ -19,10 +19,16 @@ let dashboardCache: DashboardResponse | null = null;
 
 app.get("/api/dashboard", async (req, res) => {
   try {
-    const { after, before, refresh } = req.query;
+    const { after, before, refresh, performanceDays, performanceStart, performanceEnd } = req.query;
     const hasCustomRange = typeof after === "string" && typeof before === "string";
+    const hasPerformanceRange = typeof performanceDays === "string" || (typeof performanceStart === "string" && typeof performanceEnd === "string");
     const dateRange = hasCustomRange ? { after, before } : undefined;
-    const forceRefresh = refresh === "true" || hasCustomRange;
+    const performanceRange = {
+      days: typeof performanceDays === "string" ? Number(performanceDays) : undefined,
+      start: typeof performanceStart === "string" ? performanceStart : undefined,
+      end: typeof performanceEnd === "string" ? performanceEnd : undefined,
+    };
+    const forceRefresh = refresh === "true" || hasCustomRange || hasPerformanceRange;
 
     const isCacheFresh =
       dashboardCache !== null &&
@@ -33,8 +39,8 @@ app.get("/api/dashboard", async (req, res) => {
       return;
     }
 
-    const dashboard = await buildDashboard(dateRange);
-    if (!hasCustomRange) dashboardCache = dashboard;
+    const dashboard = await buildDashboard(dateRange, { performanceRange });
+    if (!hasCustomRange && !hasPerformanceRange) dashboardCache = dashboard;
     res.json(dashboard);
   } catch (error) {
     if (error instanceof GlabError) {

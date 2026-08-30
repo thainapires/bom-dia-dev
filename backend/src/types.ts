@@ -280,9 +280,12 @@ export interface DesempenhoSemana {
 
 export interface Desempenho {
   periodoDias: number;
+  periodoLabel: string;
   totalAbertos: number;
   totalFechados: number;
   tempoMedioMergeDiasAtual: string;
+  tempoMedioMergeDiasAtualValor: number | null;
+  tempoMedioMergeDiasAnteriorValor: number | null;
   variacaoPercentual: number | null;
   seriePorSemana: DesempenhoSemana[];
 }
