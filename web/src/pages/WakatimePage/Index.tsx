@@ -72,16 +72,16 @@ export function WakatimePage() {
     <>
       <Header onRefresh={load} isRefreshing={isLoading} />
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-white/5 bg-card px-4 py-3">
-        <label className="flex items-center gap-2 text-sm text-white/70">
+      <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-border-subtle bg-surface px-4 py-3">
+        <label className="flex items-center gap-2 text-sm text-foreground-secondary">
           Período
           <select
             value={range}
             onChange={(event) => setRange(event.target.value as WakatimeRangeKey)}
-            className="rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/90 focus:outline-none focus:ring-1 focus:ring-white/20"
+            className="rounded-md border border-border-default bg-surface-hover px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-focus-ring"
           >
             {RANGE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value} className="bg-card">
+              <option key={option.value} value={option.value} className="bg-surface">
                 {option.label}
               </option>
             ))}
@@ -95,28 +95,28 @@ export function WakatimePage() {
               value={customStart}
               max={customEnd || undefined}
               onChange={(event) => setCustomStart(event.target.value)}
-              className="rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/90 focus:outline-none focus:ring-1 focus:ring-white/20"
+              className="rounded-md border border-border-default bg-surface-hover px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-focus-ring"
             />
-            <span className="text-sm text-white/40">até</span>
+            <span className="text-sm text-foreground-subtle">até</span>
             <input
               type="date"
               value={customEnd}
               min={customStart || undefined}
               onChange={(event) => setCustomEnd(event.target.value)}
-              className="rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/90 focus:outline-none focus:ring-1 focus:ring-white/20"
+              className="rounded-md border border-border-default bg-surface-hover px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-focus-ring"
             />
           </div>
         )}
       </div>
 
       {error && (
-        <div className="mt-4 rounded-lg border-l-4 border-l-status-attention bg-card px-4 py-3 text-sm text-white/80">
+        <div className="mt-4 rounded-lg border-l-4 border-l-attention bg-surface px-4 py-3 text-sm text-foreground-soft">
           Não foi possível carregar os dados do Wakatime: {error}
         </div>
       )}
 
       {timelineError && (
-        <div className="mt-4 rounded-lg border-l-4 border-l-status-attention bg-card px-4 py-3 text-sm text-white/80">
+        <div className="mt-4 rounded-lg border-l-4 border-l-attention bg-surface px-4 py-3 text-sm text-foreground-soft">
           Não foi possível carregar a timeline do Wakatime: {timelineError}
         </div>
       )}
@@ -130,48 +130,48 @@ export function WakatimePage() {
       {data && (
         <div className="opacity-100 transition-opacity duration-300 ease-(--ease-out) starting:opacity-0">
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border border-white/5 bg-card px-4 py-3">
-              <p className="flex items-center gap-1.5 text-xs uppercase text-white/50">
-                <ClockCircleIcon size={17} className="text-status-ready" />
+            <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3">
+              <p className="flex items-center gap-1.5 text-xs uppercase text-muted-foreground">
+                <ClockCircleIcon size={17} className="text-primary-light" />
                 Tempo codando ({data.range})
               </p>
-              <p className="mt-1 text-2xl font-semibold text-status-ready">{data.totalText}</p>
+              <p className="mt-1 text-2xl font-semibold text-primary-light">{data.totalText}</p>
             </div>
-            <div className="rounded-lg border border-white/5 bg-card px-4 py-3">
-              <p className="flex items-center gap-1.5 text-xs uppercase text-white/50">
-                <FireIcon size={17} className="text-status-waiting" />
+            <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3">
+              <p className="flex items-center gap-1.5 text-xs uppercase text-muted-foreground">
+                <FireIcon size={17} className="text-pending" />
                 Média diária
               </p>
-              <p className="mt-1 text-2xl font-semibold text-status-waiting">
+              <p className="mt-1 text-2xl font-semibold text-pending">
                 {data.dailyAverageText}
               </p>
             </div>
-            <div className="rounded-lg border border-white/5 bg-card px-4 py-3">
-              <p className="flex items-center gap-1.5 text-xs uppercase text-white/50">
+            <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3">
+              <p className="flex items-center gap-1.5 text-xs uppercase text-muted-foreground">
                 <MedalStarIcon size={17} className="text-status-neutral" />
                 Melhor dia
               </p>
-              <p className="mt-1 text-2xl font-semibold text-white">
+              <p className="mt-1 text-2xl font-semibold text-foreground">
                 {data.bestDay ? data.bestDay.text : "sem dados"}
               </p>
             </div>
           </div>
 
-          <div className="mt-4 rounded-lg border border-white/5 bg-card p-4">
-            <h2 className="text-sm font-semibold text-white/80">Linguagens</h2>
+          <div className="mt-4 rounded-lg border border-border-subtle bg-surface p-4">
+            <h2 className="text-sm font-semibold text-foreground-soft">Linguagens</h2>
             <div className="mt-3 flex flex-col gap-3">
               {data.languages.length === 0 ? (
-                <p className="text-sm text-white/40">Sem dados de linguagens no período.</p>
+                <p className="text-sm text-foreground-subtle">Sem dados de linguagens no período.</p>
               ) : (
                 data.languages.map((lang) => (
                   <div key={lang.name}>
-                    <div className="flex items-center justify-between text-sm text-white/80">
+                    <div className="flex items-center justify-between text-sm text-foreground-soft">
                       <span>{lang.name}</span>
-                      <span className="font-mono text-xs text-white/40">{lang.text}</span>
+                      <span className="font-mono text-xs text-foreground-subtle">{lang.text}</span>
                     </div>
-                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
                       <div
-                        className="h-full rounded-full bg-status-ready"
+                        className="h-full rounded-full bg-primary"
                         style={{ width: `${lang.percent}%` }}
                       />
                     </div>
@@ -184,7 +184,7 @@ export function WakatimePage() {
       )}
 
       {!data && isLoading && !error && (
-        <p className="mt-4 text-sm text-white/40">Carregando estatísticas do Wakatime...</p>
+        <p className="mt-4 text-sm text-foreground-subtle">Carregando estatísticas do Wakatime...</p>
       )}
     </>
   );

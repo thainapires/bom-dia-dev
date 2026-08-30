@@ -37,7 +37,7 @@ export function ReviewListCard({
       defaultOpen={defaultOpen}
     >
       {items.length === 0 ? (
-        <p className="text-sm text-white/40">{emptyText}</p>
+        <p className="text-sm text-foreground-subtle">{emptyText}</p>
       ) : (
         items.map((mr) => (
           <ReviewListItem

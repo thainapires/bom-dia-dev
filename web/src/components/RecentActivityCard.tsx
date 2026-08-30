@@ -21,13 +21,13 @@ const ICON_BY_KIND: Record<ActivityKind, ComponentType<IconProps>> = {
 };
 
 const COLOR_BY_KIND: Record<ActivityKind, { text: string; bg: string }> = {
-  commit: { text: "text-white/60", bg: "bg-white/10" },
-  merge: { text: "text-purple-300", bg: "bg-purple-500/20" },
-  review: { text: "text-status-ready", bg: "bg-status-ready/20" },
-  abertura: { text: "text-purple-300", bg: "bg-purple-500/20" },
-  issue: { text: "text-white/60", bg: "bg-white/10" },
-  comentario: { text: "text-white/60", bg: "bg-white/10" },
-  aprovacaoRecebida: { text: "text-status-ready", bg: "bg-status-ready/20" },
+  commit: { text: "text-foreground-muted", bg: "bg-surface-selected" },
+  merge: { text: "text-category-purple", bg: "bg-category-purple-bg" },
+  review: { text: "text-success", bg: "bg-success/20" },
+  abertura: { text: "text-category-purple", bg: "bg-category-purple-bg" },
+  issue: { text: "text-foreground-muted", bg: "bg-surface-selected" },
+  comentario: { text: "text-foreground-muted", bg: "bg-surface-selected" },
+  aprovacaoRecebida: { text: "text-success", bg: "bg-success/20" },
 };
 
 const LABEL_BY_KIND: Record<ActivityKind, string> = {
@@ -42,24 +42,24 @@ const LABEL_BY_KIND: Record<ActivityKind, string> = {
 
 export function RecentActivityCard({ items }: { items: ActivityItem[] }) {
   return (
-    <div className="rounded-lg bg-card p-4 border-white/5 border">
+    <div className="rounded-lg bg-surface p-4 border-border-subtle border">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-white/80">
+        <h2 className="text-sm font-semibold text-foreground-soft">
           Atividade recente
-          <span className="ml-2 text-white/30">{items.length}</span>
+          <span className="ml-2 text-foreground-disabled">{items.length}</span>
         </h2>
         <a
           href="https://gitlab.com/users/thainapires.rp/activity"
           target="_blank"
           rel="noreferrer"
-          className="text-xs text-white/50 hover:text-white/80"
+          className="text-xs text-muted-foreground hover:text-foreground-soft"
         >
           Ver tudo
         </a>
       </div>
       <div className="mt-3 flex max-h-80 flex-col gap-3 overflow-y-auto">
         {items.length === 0 ? (
-          <p className="text-sm text-white/40">Nenhuma atividade registrada.</p>
+          <p className="text-sm text-foreground-subtle">Nenhuma atividade registrada.</p>
         ) : (
           items.map((item, index) => {
             const Icon = ICON_BY_KIND[item.kind];
@@ -70,10 +70,10 @@ export function RecentActivityCard({ items }: { items: ActivityItem[] }) {
                   <Icon size={16} className={color.text} />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-white/90">{LABEL_BY_KIND[item.kind]}</p>
-                  <p className="truncate text-xs text-white/40">{item.text}</p>
+                  <p className="text-sm font-medium text-foreground">{LABEL_BY_KIND[item.kind]}</p>
+                  <p className="truncate text-xs text-foreground-subtle">{item.text}</p>
                 </div>
-                <span className="flex-none text-xs text-white/40">{formatRelativeDays(item.createdAt)}</span>
+                <span className="flex-none text-xs text-foreground-subtle">{formatRelativeDays(item.createdAt)}</span>
               </div>
             );
           })

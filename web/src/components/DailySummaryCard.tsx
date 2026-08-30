@@ -14,13 +14,13 @@ export function DailySummaryCard({ entry }: { entry: DailyEntry }) {
   };
 
   return (
-    <div className="rounded-lg bg-card p-5 border-white/5 border mt-4">
+    <div className="rounded-lg bg-surface p-5 border-border-subtle border mt-4">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="text-sm font-semibold text-white/80">
+        <h2 className="text-sm font-semibold text-foreground-soft">
           <span className="mr-2 inline-block h-2 w-2 rounded-full bg-status-neutral" />
           Resumo pra daily
           {!entry.geradoViaLLM && (
-            <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-normal text-white/40">
+            <span className="ml-2 rounded-full bg-surface-selected px-2 py-0.5 text-[10px] font-normal text-foreground-subtle">
               gerado sem IA
             </span>
           )}
@@ -28,11 +28,11 @@ export function DailySummaryCard({ entry }: { entry: DailyEntry }) {
         <button
           type="button"
           onClick={handleCopy}
-          className="flex flex-none items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-1.5 text-xs text-white/70 transition hover:bg-white/10 hover:text-white active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          className="flex flex-none items-center gap-1.5 rounded-md bg-surface-hover px-2.5 py-1.5 text-xs text-foreground-secondary transition hover:bg-surface-selected hover:text-foreground active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           {copied ? (
             <span className="flex items-center gap-1.5 opacity-100 transition-opacity duration-150 ease-(--ease-out) starting:opacity-0">
-              <CheckCircleIcon size={14} className="text-status-ready" />
+              <CheckCircleIcon size={14} className="text-success" />
               Copiado
             </span>
           ) : (
@@ -44,8 +44,8 @@ export function DailySummaryCard({ entry }: { entry: DailyEntry }) {
         </button>
       </div>
 
-      <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-white/90">{entry.ontem}</p>
-      <p className="mt-4 whitespace-pre-line border-t border-white/10 pt-4 text-base leading-relaxed text-white/90">
+      <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-foreground">{entry.ontem}</p>
+      <p className="mt-4 whitespace-pre-line border-t border-border-default pt-4 text-base leading-relaxed text-foreground">
         {entry.hoje}
       </p>
     </div>

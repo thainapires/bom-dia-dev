@@ -4,18 +4,18 @@ import { Fragment, useEffect, useState } from "react";
 import { TIMEZONE, addDays, toISODate } from "../formatting";
 import type { WakatimeTimeline, WakatimeTimelineSession } from "../types";
 
-// Paleta categórica validada (checagem de daltonismo + contraste) contra o
-// fundo escuro dos cards deste projeto (#19232F) — ver skill de dataviz.
+// Paleta categórica validada contra o fundo escuro dos cards deste projeto.
+// Mantida como tokens de chart para nao misturar dataviz com status de produto.
 // Ordem fixa, nunca ciclada: o 9º projeto em diante vira "Outros".
 const PALETTE = [
-  "#3987e5",
-  "#d95926",
-  "#199e70",
-  "#c98500",
-  "#d55181",
-  "#008300",
-  "#9085e9",
-  "#e66767",
+  "var(--color-chart-series-1)",
+  "var(--color-chart-series-2)",
+  "var(--color-chart-series-3)",
+  "var(--color-chart-series-4)",
+  "var(--color-chart-series-5)",
+  "var(--color-chart-series-6)",
+  "var(--color-chart-series-7)",
+  "var(--color-chart-series-8)",
 ];
 
 const DAY_SECONDS = 24 * 60 * 60;
@@ -121,14 +121,14 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
   }, [timeline.date]);
 
   return (
-    <div className="rounded-lg border border-white/5 bg-card p-4">
+    <div className="rounded-lg border border-border-subtle bg-surface p-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-white/80">Timeline do dia</h2>
-        <div className="flex items-center gap-1 rounded-md bg-white/5 px-1.5 py-1 text-xs text-white/60">
+        <h2 className="text-sm font-semibold text-foreground-soft">Timeline do dia</h2>
+        <div className="flex items-center gap-1 rounded-md bg-surface-hover px-1.5 py-1 text-xs text-foreground-muted">
           <button
             type="button"
             onClick={() => onDateChange(addDays(timeline.date, -1))}
-            className="rounded p-1 transition hover:bg-white/10 hover:text-white active:scale-[0.9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+            className="rounded p-1 transition hover:bg-surface-selected hover:text-foreground active:scale-[0.9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             title="Dia anterior"
           >
             <AltArrowLeftIcon size={13} />
@@ -140,7 +140,7 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
             type="button"
             onClick={() => onDateChange(addDays(timeline.date, 1))}
             disabled={isToday}
-            className="rounded p-1 transition hover:bg-white/10 hover:text-white active:scale-[0.9] disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+            className="rounded p-1 transition hover:bg-surface-selected hover:text-foreground active:scale-[0.9] disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             title="Próximo dia"
           >
             <AltArrowRightIcon size={13} />
@@ -149,15 +149,15 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
       </div>
 
       {rows.length === 0 ? (
-        <p className="mt-3 text-sm text-white/40">Sem atividade registrada nesse dia.</p>
+        <p className="mt-3 text-sm text-foreground-subtle">Sem atividade registrada nesse dia.</p>
       ) : (
         <>
           <div className="mt-4 overflow-x-auto">
             <div className="relative min-w-[36rem]">
               <div className="grid w-full grid-cols-[9.5rem_1fr] items-center gap-x-3 gap-y-1.5">
                 {/* Eixo de horário — poucos marcos (a cada 3h) em vez de uma grade por hora. */}
-                <div className="sticky left-0 z-10 bg-card" />
-                <div className="relative h-4 border-b border-white/5 pb-1.5 font-mono text-[10px] tabular-nums text-white/40">
+                <div className="sticky left-0 z-10 bg-surface" />
+                <div className="relative h-4 border-b border-border-subtle pb-1.5 font-mono text-[10px] tabular-nums text-foreground-subtle">
                   {AXIS_HOURS.map((hour) => (
                     <span
                       key={hour}
@@ -171,18 +171,18 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
 
                 {rows.map((row) => (
                   <Fragment key={row.name}>
-                    <div className="sticky left-0 z-10 flex min-w-0 flex-col justify-center gap-0.5 bg-card pr-2">
-                      <span className="flex items-center gap-1.5 truncate text-sm font-medium text-white/90" title={row.name}>
+                    <div className="sticky left-0 z-10 flex min-w-0 flex-col justify-center gap-0.5 bg-surface pr-2">
+                      <span className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground" title={row.name}>
                         <span
                           className="h-1.5 w-1.5 shrink-0 rounded-full"
                           style={{ backgroundColor: row.color }}
                         />
                         <span className="truncate">{row.name}</span>
                       </span>
-                      <span className="pl-3 font-mono text-xs text-white/40">{row.totalText}</span>
+                      <span className="pl-3 font-mono text-xs text-foreground-subtle">{row.totalText}</span>
                     </div>
 
-                    <div className="relative h-7 rounded-md bg-white/[0.06] transition-colors hover:bg-white/[0.09]">
+                    <div className="relative h-7 rounded-md bg-surface-hover transition-colors hover:bg-surface-hover-strong">
                       {row.sessions.map((session, index) => {
                         const startSec = Math.min(secondsSinceMidnight(session.start), DAY_SECONDS);
                         const rawEndSec = secondsSinceMidnight(session.end);
@@ -195,18 +195,18 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
                             key={`${session.start}-${index}`}
                             type="button"
                             onMouseEnter={() =>
-                              setHovered({ project: session.project, color: row.color, ...session })
+                              setHovered({ ...session, color: row.color })
                             }
                             onFocus={() =>
-                              setHovered({ project: session.project, color: row.color, ...session })
+                              setHovered({ ...session, color: row.color })
                             }
                             onClick={() =>
-                              setHovered({ project: session.project, color: row.color, ...session })
+                              setHovered({ ...session, color: row.color })
                             }
                             onMouseLeave={() => setHovered(null)}
                             onBlur={() => setHovered(null)}
                             title={`${session.project} · ${formatHourMinuteSecond(session.start)}–${formatHourMinuteSecond(session.end)} · ${formatDuration(session.durationSeconds)}`}
-                            className="absolute inset-y-1 cursor-pointer  border-0 p-0 outline-none transition-[filter] duration-150 hover:brightness-125 focus-visible:brightness-125 focus-visible:ring-2 focus-visible:ring-white/50"
+                            className="absolute inset-y-1 cursor-pointer  border-0 p-0 outline-none transition-[filter] duration-150 hover:brightness-125 focus-visible:brightness-125 focus-visible:ring-2 focus-visible:ring-focus-ring-strong"
                             style={{
                               left: `${leftPct}%`,
                               width: `${widthPct}%`,
@@ -233,11 +233,11 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
                   style={{ left: "calc(9.5rem + 0.75rem)", right: 0 }}
                 >
                   <span
-                    className="absolute -top-0.5 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-status-ready"
+                    className="absolute -top-0.5 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-primary"
                     style={{ left: `${nowPct}%` }}
                   />
                   <span
-                    className="absolute inset-y-0 w-px bg-status-ready/40"
+                    className="absolute inset-y-0 w-px bg-primary/40"
                     style={{ left: `${nowPct}%` }}
                   />
                 </div>
@@ -247,21 +247,21 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
 
           <div
             aria-live="polite"
-            className="mt-3 flex h-9 items-center gap-2 rounded-md border border-white/5 bg-white/[0.03] px-3 text-xs"
+            className="mt-3 flex h-9 items-center gap-2 rounded-md border border-border-subtle bg-surface-overlay px-3 text-xs"
           >
             {hovered ? (
               <>
                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: hovered.color }} />
-                <span className="font-medium text-white">{hovered.project}</span>
-                <span className="text-white/25">·</span>
-                <span className="font-mono text-white/60">
+                <span className="font-medium text-foreground">{hovered.project}</span>
+                <span className="text-foreground-disabled">·</span>
+                <span className="font-mono text-foreground-muted">
                   {formatHourMinuteSecond(hovered.start)}–{formatHourMinuteSecond(hovered.end)}
                 </span>
-                <span className="text-white/25">·</span>
-                <span className="text-white/50">{formatDuration(hovered.durationSeconds)}</span>
+                <span className="text-foreground-disabled">·</span>
+                <span className="text-muted-foreground">{formatDuration(hovered.durationSeconds)}</span>
               </>
             ) : (
-              <span className="text-white/30">Passe o mouse ou navegue com Tab sobre um bloco para ver os detalhes</span>
+              <span className="text-foreground-disabled">Passe o mouse ou navegue com Tab sobre um bloco para ver os detalhes</span>
             )}
           </div>
         </>

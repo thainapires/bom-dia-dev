@@ -2,7 +2,7 @@ import { Skeleton } from "./Skeleton";
 
 export function ListCardSkeleton({ rows = 3 }: { rows?: number }) {
   return (
-    <div className="rounded-lg border border-white/5 bg-card p-4">
+    <div className="rounded-lg border border-border-subtle bg-surface p-4">
       <div className="flex items-center gap-2">
         <Skeleton className="h-4 w-4 rounded-full" />
         <Skeleton className="h-4 w-32" />
@@ -11,7 +11,7 @@ export function ListCardSkeleton({ rows = 3 }: { rows?: number }) {
         {Array.from({ length: rows }).map((_, i) => (
           <div
             key={i}
-            className="flex items-center gap-2 rounded-md border-l-4 border-l-white/10 bg-white/5 px-3 py-2"
+            className="flex items-center gap-2 rounded-md border-l-4 border-l-border-default bg-surface-hover px-3 py-2"
           >
             <div className="min-w-0 flex-1">
               <Skeleton className="h-3.5 w-3/4" />

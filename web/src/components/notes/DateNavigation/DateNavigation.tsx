@@ -25,15 +25,15 @@ export function DateNavigation({ date, isToday, onDateChange }: DateNavigationPr
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex items-center gap-1 rounded-lg bg-card p-1">
+      <div className="flex items-center gap-1 rounded-lg bg-surface p-1">
         <DateNavigationButton
           title="Dia anterior"
           icon={<ArrowLeftIcon size={16} />}
           onClick={handlePreviousDay}
         />
 
-        <div className="flex items-center gap-1.5 whitespace-nowrap px-2 text-sm font-medium text-white">
-          <CalendarDateLinearIcon size={16} className="flex-none text-white/40" />
+        <div className="flex items-center gap-1.5 whitespace-nowrap px-2 text-sm font-medium text-foreground">
+          <CalendarDateLinearIcon size={16} className="flex-none text-foreground-subtle" />
           {formatCompactDate(date)}
         </div>
 
@@ -53,7 +53,7 @@ export function DateNavigation({ date, isToday, onDateChange }: DateNavigationPr
         <button
           type="button"
           onClick={handleToday}
-          className="flex-none rounded-md px-2 py-1.5 text-xs font-medium text-white/60 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          className="flex-none rounded-md px-2 py-1.5 text-xs font-medium text-foreground-muted transition hover:bg-surface-selected hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           Hoje
         </button>

@@ -3,16 +3,10 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
 import { useEffect, useMemo } from "react";
-import { LinkIcon } from "@solar-icons/react/linear/link";
-import { ListIcon } from "@solar-icons/react/linear/list";
-import { ListCheckIcon } from "@solar-icons/react/linear/list-check";
-import { TextBoldIcon } from "@solar-icons/react/linear/text-bold";
-import { TextItalicIcon } from "@solar-icons/react/linear/text-italic";
-import { TextUnderlineIcon } from "@solar-icons/react/linear/text-underline";
 import { MdFormatBold, MdFormatItalic, MdFormatListBulleted, MdFormatListNumbered, MdFormatUnderlined, MdOutlineInsertLink } from "react-icons/md";
 
 const TOOLBAR_BUTTON_CLASS =
-  "flex h-8 w-8 items-center justify-center rounded-md text-white/60 transition hover:bg-white/10 hover:text-white/90 active:scale-[0.92] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg";
+  "flex h-8 w-8 items-center justify-center rounded-md text-foreground-muted transition hover:bg-surface-selected hover:text-foreground active:scale-[0.92] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 // Hoisted (referência estável) pelo mesmo motivo do `extensions` memoizado
 // abaixo — o useEditor do Tiptap recria a view sempre que esse objeto muda
@@ -20,7 +14,7 @@ const TOOLBAR_BUTTON_CLASS =
 const EDITOR_PROPS = {
   attributes: {
     class:
-      "prose-notes min-h-56 w-full rounded-md border border-white/5 bg-card-input p-3 text-sm text-white/90 focus:outline-none",
+      "prose-notes min-h-56 w-full rounded-md border border-border-subtle bg-surface-input p-3 text-sm text-foreground focus:outline-none",
   },
 };
 
@@ -98,12 +92,12 @@ export function RichTextEditor({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-1 border-b border-white/5 pb-3">
+      <div className="flex flex-wrap items-center gap-1 border-b border-border-subtle pb-3">
         <button
           type="button"
           title="Negrito"
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`${TOOLBAR_BUTTON_CLASS} ${editor.isActive("bold") ? "bg-white/10 text-white" : ""}`}
+          className={`${TOOLBAR_BUTTON_CLASS} ${editor.isActive("bold") ? "bg-surface-selected text-foreground" : ""}`}
         >
           <MdFormatBold size={24} />
         </button>
@@ -111,7 +105,7 @@ export function RichTextEditor({
           type="button"
           title="Itálico"
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`${TOOLBAR_BUTTON_CLASS} ${editor.isActive("italic") ? "bg-white/10 text-white" : ""}`}
+          className={`${TOOLBAR_BUTTON_CLASS} ${editor.isActive("italic") ? "bg-surface-selected text-foreground" : ""}`}
         >
           <MdFormatItalic size={24} />
         </button>
@@ -119,16 +113,16 @@ export function RichTextEditor({
           type="button"
           title="Sublinhado"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={`${TOOLBAR_BUTTON_CLASS} ${editor.isActive("underline") ? "bg-white/10 text-white" : ""}`}
+          className={`${TOOLBAR_BUTTON_CLASS} ${editor.isActive("underline") ? "bg-surface-selected text-foreground" : ""}`}
         >
           <MdFormatUnderlined size={24} />
         </button>
-        <span className="mx-1 h-5 w-px bg-white/10" />
+        <span className="mx-1 h-5 w-px bg-surface-selected" />
         <button
           type="button"
           title="Lista"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`${TOOLBAR_BUTTON_CLASS} ${editor.isActive("bulletList") ? "bg-white/10 text-white" : ""}`}
+          className={`${TOOLBAR_BUTTON_CLASS} ${editor.isActive("bulletList") ? "bg-surface-selected text-foreground" : ""}`}
         >
           <MdFormatListBulleted size={24} />
         </button>
@@ -136,16 +130,16 @@ export function RichTextEditor({
           type="button"
           title="Lista numerada"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`${TOOLBAR_BUTTON_CLASS} ${editor.isActive("orderedList") ? "bg-white/10 text-white" : ""}`}
+          className={`${TOOLBAR_BUTTON_CLASS} ${editor.isActive("orderedList") ? "bg-surface-selected text-foreground" : ""}`}
         >
           <MdFormatListNumbered size={24} />
         </button>
-        <span className="mx-1 h-5 w-px bg-white/10" />
+        <span className="mx-1 h-5 w-px bg-surface-selected" />
         <button
           type="button"
           title={editor.isActive("link") ? "Remover link" : "Adicionar link"}
           onClick={toggleLink}
-          className={`${TOOLBAR_BUTTON_CLASS} ${editor.isActive("link") ? "bg-white/10 text-white" : ""}`}
+          className={`${TOOLBAR_BUTTON_CLASS} ${editor.isActive("link") ? "bg-surface-selected text-foreground" : ""}`}
         >
           <MdOutlineInsertLink size={24} />
         </button>

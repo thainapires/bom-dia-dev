@@ -2,7 +2,7 @@ import { Skeleton } from "./Skeleton";
 
 export function RecentActivityCardSkeleton() {
   return (
-    <div className="rounded-lg border border-white/5 bg-card p-4">
+    <div className="rounded-lg border border-border-subtle bg-surface p-4">
       <div className="flex items-center justify-between gap-2">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-3 w-14" />

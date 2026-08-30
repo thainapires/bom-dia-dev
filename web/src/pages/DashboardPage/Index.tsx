@@ -53,7 +53,7 @@ export function DashboardPage() {
       <Header onRefresh={() => load(true)} isRefreshing={isLoading} lastUpdated={data?.atualizadoEm ?? null} />
 
       {error && (
-        <div className="mt-4 rounded-lg border-l-4 border-l-status-attention bg-card px-4 py-3 text-sm text-white/80">
+        <div className="mt-4 rounded-lg border-l-4 border-l-attention bg-surface px-4 py-3 text-sm text-foreground-soft">
           Não foi possível carregar os dados do GitLab: {error}
         </div>
       )}
@@ -63,7 +63,7 @@ export function DashboardPage() {
           <SummaryCards summary={data.summary} />
 
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
-            <div className="bg-card-main border-white/5 flex min-w-0 flex-col gap-4 rounded-lg border p-5 lg:col-span-3">
+            <div className="bg-surface-section border-border-subtle flex min-w-0 flex-col gap-4 rounded-lg border p-5 lg:col-span-3">
               <h2 className="text-lg font-bold">Visão geral</h2>
               <div className="flex flex-col gap-4">
                 {visibleCards.pronto && (
@@ -72,8 +72,8 @@ export function DashboardPage() {
                     items={applyEsquecidoThreshold(data.pronto, diasEsquecidoLimite)}
                     emptyText="Nenhum MR pronto pra merge agora."
                     icon={CheckCircleIcon}
-                    iconColorClass="text-status-ready"
-                    iconBgClass="bg-status-ready/20"
+                    iconColorClass="text-success"
+                    iconBgClass="bg-success/20"
                   />
                 )}
                 {visibleCards.atencao && (
@@ -82,8 +82,8 @@ export function DashboardPage() {
                     items={applyEsquecidoThreshold(data.atencao, diasEsquecidoLimite)}
                     emptyText="Nenhum MR precisando de atenção."
                     icon={DangerTriangleIcon}
-                    iconColorClass="text-status-attention"
-                    iconBgClass="bg-status-attention/20"
+                    iconColorClass="text-attention"
+                    iconBgClass="bg-attention/20"
                   />
                 )}
                 {visibleCards.precisaRevisar && (
@@ -92,10 +92,10 @@ export function DashboardPage() {
                     items={data.precisaRevisar}
                     emptyText="Nenhum MR esperando sua revisão."
                     icon={RestartIcon}
-                    iconColorClass="text-status-waiting"
-                    iconBgClass="bg-status-waiting/20"
-                    borderColorClass="border-l-status-waiting"
-                    badgeColorClass="bg-status-waiting/15 text-status-waiting"
+                    iconColorClass="text-pending"
+                    iconBgClass="bg-pending/20"
+                    borderColorClass="border-l-pending"
+                    badgeColorClass="bg-pending/15 text-pending"
                   />
                 )}
                 {visibleCards.aguardandoRespostaMeus && (
@@ -117,10 +117,10 @@ export function DashboardPage() {
                     items={data.aguardandoRespostaOutros}
                     emptyText="Nenhum comentário de colega aguardando resposta."
                     icon={ClockCircleLinear}
-                    iconColorClass="text-white/60"
-                    iconBgClass="bg-white/10"
-                    borderColorClass="border-l-white/30"
-                    badgeColorClass="bg-white/10 text-white/70"
+                    iconColorClass="text-foreground-muted"
+                    iconBgClass="bg-surface-selected"
+                    borderColorClass="border-l-foreground-disabled"
+                    badgeColorClass="bg-surface-selected text-foreground-secondary"
                     defaultOpen={false}
                   />
                 )}
@@ -130,8 +130,8 @@ export function DashboardPage() {
                     items={applyEsquecidoThreshold(data.aguardando, diasEsquecidoLimite)}
                     emptyText="Nenhum MR aguardando review."
                     icon={BellIcon}
-                    iconColorClass="text-status-waiting"
-                    iconBgClass="bg-status-waiting/20"
+                    iconColorClass="text-pending"
+                    iconBgClass="bg-pending/20"
                     defaultOpen={false}
                   />
                 )}
@@ -141,10 +141,10 @@ export function DashboardPage() {
                     items={data.jaAprovado}
                     emptyText="Nenhum MR aprovado esperando merge."
                     icon={CheckCircleIcon}
-                    iconColorClass="text-white/50"
-                    iconBgClass="bg-white/10"
-                    borderColorClass="border-l-white/20"
-                    badgeColorClass="bg-white/10 text-white/60"
+                    iconColorClass="text-muted-foreground"
+                    iconBgClass="bg-surface-selected"
+                    borderColorClass="border-l-foreground-faint"
+                    badgeColorClass="bg-surface-selected text-foreground-muted"
                     defaultOpen={false}
                   />
                 )}
@@ -164,7 +164,7 @@ export function DashboardPage() {
           <SummaryCardsSkeleton />
 
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
-            <div className="bg-card-main border-white/5 flex min-w-0 flex-col gap-4 rounded-lg border p-5 lg:col-span-3">
+            <div className="bg-surface-section border-border-subtle flex min-w-0 flex-col gap-4 rounded-lg border p-5 lg:col-span-3">
               <Skeleton className="h-5 w-32" />
               <div className="flex flex-col gap-4">
                 <ListCardSkeleton />

@@ -28,13 +28,13 @@ export function RecentNotesCard({
   onLoadMore,
 }: RecentNotesCardProps) {
   return (
-    <div className="rounded-lg border border-white/5 bg-card p-4">
-      <h2 className="text-sm font-semibold text-white/80">Notas recentes</h2>
+    <div className="rounded-lg border border-border-subtle bg-surface p-4">
+      <h2 className="text-sm font-semibold text-foreground-soft">Notas recentes</h2>
 
       {notes.length === 0 ? (
-        <p className="mt-3 text-sm text-white/40">Nenhuma nota ainda.</p>
+        <p className="mt-3 text-sm text-foreground-subtle">Nenhuma nota ainda.</p>
       ) : (
-        <div className="mt-3 flex flex-col divide-y divide-white/5">
+        <div className="mt-3 flex flex-col divide-y divide-border-subtle">
           {notes.map((note) => {
             const relative = formatRelativeDays(note.createdAt);
             const dayLabel = noteLabel(relative) ?? formatShortDate(note.date);
@@ -43,7 +43,7 @@ export function RecentNotesCard({
                 key={note.id}
                 type="button"
                 onClick={() => onSelect(note)}
-                className={`flex items-center gap-3 py-3 text-left transition rounded-md hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg cursor-pointer ${
+                className={`flex items-center gap-3 py-3 text-left transition rounded-md hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer ${
                   note.id === activeNoteId ? "bg-primary/10 hover:bg-primary/20" : ""
                 }`}
               >
@@ -52,18 +52,18 @@ export function RecentNotesCard({
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline gap-2">
-                    <span className="truncate text-sm font-medium text-white/90">
+                    <span className="truncate text-sm font-medium text-foreground">
                       {note.title || "Sem título"}
                     </span>
-                    <span className="flex-none text-xs text-white/40">
+                    <span className="flex-none text-xs text-foreground-subtle">
                       {dayLabel} · {formatHourMinute(note.createdAt)}
                     </span>
                   </span>
-                  <span className="mt-0.5 block truncate text-xs text-white/40">
+                  <span className="mt-0.5 block truncate text-xs text-foreground-subtle">
                     {note.preview || "Nota vazia"}
                   </span>
                 </span>
-                <AltArrowRightIcon size={14} className="flex-none text-white/20 mr-2" />
+                <AltArrowRightIcon size={14} className="flex-none text-foreground-faint mr-2" />
               </button>
             );
           })}
@@ -75,7 +75,7 @@ export function RecentNotesCard({
           type="button"
           onClick={onLoadMore}
           disabled={isLoadingMore}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md bg-white/5 px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 active:scale-[0.97] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md bg-surface-hover px-3 py-2 text-sm text-foreground-secondary transition hover:bg-surface-selected active:scale-[0.97] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           {isLoadingMore && <RefreshIcon size={14} className="animate-spin" />}
           Ver mais

@@ -1,22 +1,51 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #7C4DFF;
-  --color-primary-light: #9B6DFF;
-  --color-bg: #0D111D;
-  --color-sidebar: #0F1420;
-  --color-card: #141A26;
-  --color-card-input: #181D29;
-  --color-status-ready: #4CAF6A;
-  --color-status-waiting: #e0a458;
-  --color-status-attention: #ED6081;
+  --color-primary: #7c4dff;
+  --color-primary-light: #9b6dff;
+  --color-background: #0d111d;
+  --color-sidebar: #0f1420;
+  --color-surface: #141a26;
+  --color-surface-section: #131b27;
+  --color-surface-input: #181d29;
+  --color-surface-overlay: rgba(255, 255, 255, 0.03);
+  --color-surface-hover: rgba(255, 255, 255, 0.05);
+  --color-surface-hover-strong: rgba(255, 255, 255, 0.09);
+  --color-surface-selected: rgba(255, 255, 255, 0.1);
+  --color-surface-selected-strong: rgba(255, 255, 255, 0.2);
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+  --color-border-default: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.2);
+  --color-foreground: #f1f2f5;
+  --color-foreground-soft: rgba(255, 255, 255, 0.8);
+  --color-foreground-secondary: rgba(255, 255, 255, 0.7);
+  --color-foreground-muted: rgba(255, 255, 255, 0.6);
+  --color-muted-foreground: rgba(255, 255, 255, 0.5);
+  --color-foreground-subtle: rgba(255, 255, 255, 0.4);
+  --color-foreground-disabled: rgba(255, 255, 255, 0.3);
+  --color-foreground-faint: rgba(255, 255, 255, 0.2);
+  --color-focus-ring: rgba(255, 255, 255, 0.25);
+  --color-focus-ring-strong: rgba(255, 255, 255, 0.5);
+  --color-control-background: #ffffff;
+  --color-success: #4caf6a;
+  --color-pending: #e0a458;
+  --color-attention: #ed6081;
   --color-status-neutral: #6b7280;
-  --color-card-main: #131B27;
-  --color-borders: #252B38;
-  --color-main-text: #F1F2F5;
-  --color-secondary-text: #A5ACBC;
-  --color-disabled: #667085;
-  --color-warning: #D9A441;
+  --color-info: #60a5fa;
+  --color-info-soft: #67e8f9;
+  --color-category-purple: var(--color-primary-light);
+  --color-category-purple-bg: rgba(124, 77, 255, 0.15);
+  --color-chart-background: #19232f;
+  --color-chart-open: var(--color-primary-light);
+  --color-chart-success: #4caf6a;
+  --color-chart-series-1: var(--color-primary);
+  --color-chart-series-2: var(--color-primary-light);
+  --color-chart-series-3: var(--color-info);
+  --color-chart-series-4: #c98500;
+  --color-chart-series-5: #d55181;
+  --color-chart-series-6: #008300;
+  --color-chart-series-7: #9085e9;
+  --color-chart-series-8: #e66767;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
@@ -29,8 +58,8 @@
 }
 
 body {
-  background-color: var(--color-bg);
-  color: #e6e6e6;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-sans);
 }
 
@@ -65,7 +94,7 @@ body {
   content: attr(data-placeholder);
   float: left;
   height: 0;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--color-foreground-disabled);
   pointer-events: none;
 }
 

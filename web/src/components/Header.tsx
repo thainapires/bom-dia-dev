@@ -65,7 +65,7 @@ export function Header({ onRefresh, isRefreshing, lastUpdated }: HeaderProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h1 className="flex items-center text-xl font-semibold text-white sm:text-2xl">
+        <h1 className="flex items-center text-xl font-semibold text-foreground sm:text-2xl">
           {greeting(getSaoPauloHour(now))},&nbsp;
           {isEditing ? (
             <input
@@ -75,7 +75,7 @@ export function Header({ onRefresh, isRefreshing, lastUpdated }: HeaderProps) {
               onKeyDown={handleKeyDown}
               onBlur={commitEdit}
               autoFocus
-              className="rounded-md border border-white/20 bg-white/10 px-1.5 py-0.5 text-xl font-semibold text-white outline-none sm:text-2xl"
+              className="rounded-md border border-border-strong bg-surface-selected px-1.5 py-0.5 text-xl font-semibold text-foreground outline-none sm:text-2xl"
               style={{ width: `${Math.max(draftName.length, 3) + 1}ch` }}
             />
           ) : (
@@ -83,30 +83,30 @@ export function Header({ onRefresh, isRefreshing, lastUpdated }: HeaderProps) {
               type="button"
               onClick={startEdit}
               title="Editar nome"
-              className="group -mx-1.5 flex items-center gap-1.5 rounded-md px-1.5 py-0.5 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+              className="group -mx-1.5 flex items-center gap-1.5 rounded-md px-1.5 py-0.5 transition hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               {settings.displayName}
               <Pen2Icon
                 size={14}
-                className="text-white/40 opacity-0 transition group-hover:opacity-100"
+                className="text-foreground-subtle opacity-0 transition group-hover:opacity-100"
               />
             </button>
           )}
         </h1>
-        <p className="mt-1 text-sm capitalize text-white/50">{formattedDate(now)}</p>
+        <p className="mt-1 text-sm capitalize text-muted-foreground">{formattedDate(now)}</p>
       </div>
       <div className="flex flex-none flex-col items-end gap-1">
         <button
           type="button"
           onClick={onRefresh}
           disabled={isRefreshing}
-          className="flex flex-none items-center gap-2 rounded-lg bg-card px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          className="flex flex-none items-center gap-2 rounded-lg bg-surface px-3 py-2 text-sm text-foreground-soft transition hover:bg-surface-selected active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <RefreshIcon size={16} className={isRefreshing ? "animate-spin" : ""} />
           Atualizar
         </button>
         {lastUpdated && (
-          <span className="text-xs text-white/30">Atualizado às {formatHourMinute(lastUpdated)}</span>
+          <span className="text-xs text-foreground-disabled">Atualizado às {formatHourMinute(lastUpdated)}</span>
         )}
       </div>
     </div>

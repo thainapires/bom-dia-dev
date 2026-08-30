@@ -31,15 +31,15 @@ export function NotesSummaryCard({ stats }: NotesSummaryCardProps) {
       label: "Concluídas",
       value: String(stats.completedTasks),
       icon: CheckCircleIcon,
-      color: "text-status-ready",
-      background: "bg-status-ready/20",
+      color: "text-success",
+      background: "bg-success/20",
     },
     {
       label: "Progresso do dia",
       value: `${stats.progressPercent}%`,
       icon: ClockCircleIcon,
-      color: "text-status-waiting",
-      background: "bg-status-waiting/20",
+      color: "text-pending",
+      background: "bg-pending/20",
     },
     {
       label: "Palavras na nota",
@@ -51,17 +51,17 @@ export function NotesSummaryCard({ stats }: NotesSummaryCardProps) {
   ];
 
   return (
-    <div className="rounded-lg border border-white/5 bg-card p-4">
-      <h2 className="text-sm font-semibold text-white/80">Resumo do dia</h2>
+    <div className="rounded-lg border border-border-subtle bg-surface p-4">
+      <h2 className="text-sm font-semibold text-foreground-soft">Resumo do dia</h2>
       <div className="mt-3 grid grid-cols-2 gap-3">
         {tiles.map((tile) => (
-          <div key={tile.label} className="flex gap-3 items-center rounded-md bg-card-input border border-borders px-6 py-3">
+          <div key={tile.label} className="flex gap-3 items-center rounded-md bg-surface-input border border-border-default px-6 py-3">
             <div className={`flex h-10 w-10 items-center justify-center rounded-full ${tile.background}`}>
               <tile.icon className={tile.color} size={24} />
             </div>
             <div className="flex flex-col">
               <p className={`mt-2 text-xl font-semibold ${tile.color}`}>{tile.value}</p>
-              <p className="mt-0.5 text-xs text-white/50">{tile.label}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{tile.label}</p>
             </div>
           </div>
         ))}

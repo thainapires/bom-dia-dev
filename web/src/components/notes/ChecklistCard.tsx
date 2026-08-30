@@ -13,17 +13,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { AddCircleIcon } from "@solar-icons/react/bold-duotone/add-circle";
-import { TrashBinMinimalisticIcon } from "@solar-icons/react/bold-duotone/trash-bin-minimalistic";
-import { HamburgerMenuIcon } from "@solar-icons/react/linear/hamburger-menu";
-import { Pen2Icon } from "@solar-icons/react/linear/pen-2";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { ChecklistItem } from "../../types";
-import { PlusMinusBoldDuotoneIcon } from "@solar-icons/react";
 import { GoPlus } from "react-icons/go";
+import { FaRegEdit, FaTrash } from "react-icons/fa";
 import { MdDragIndicator } from "react-icons/md";
-import { FaEdit, FaRegEdit, FaTrash } from "react-icons/fa";
 
 interface ChecklistCardProps {
   checklist: ChecklistItem[];
@@ -84,15 +79,15 @@ export function ChecklistCard({
   }
 
   return (
-    <div className="rounded-lg border border-white/5 bg-card p-4">
+    <div className="rounded-lg border border-border-subtle bg-surface p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-white/80">Checklist</h2>
-        <span className="text-sm text-white/50">
+        <h2 className="text-sm font-semibold text-foreground-soft">Checklist</h2>
+        <span className="text-sm text-muted-foreground">
           {completed}/{total}
         </span>
       </div>
 
-      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
         <div
           className="h-full rounded-full bg-primary transition-[width] duration-300 ease-(--ease-out)"
           style={{ width: `${percent}%` }}
@@ -105,12 +100,12 @@ export function ChecklistCard({
           value={newItemText}
           onChange={(event) => setNewItemText(event.target.value)}
           placeholder="Adicionar item..."
-          className="min-w-0 flex-1 rounded-md border border-white/5 bg-card-input px-3 py-2 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-white/20"
+          className="min-w-0 flex-1 rounded-md border border-border-subtle bg-surface-input px-3 py-2 text-sm text-foreground placeholder:text-foreground-disabled focus:outline-none focus:ring-1 focus:ring-focus-ring"
         />
         <button
           type="submit"
           title="Adicionar"
-          className="flex flex-none items-center justify-center rounded-md border border-white/5 bg-card-input px-3 py-2 text-white/80 transition hover:bg-white/20 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          className="flex flex-none items-center justify-center rounded-md border border-border-subtle bg-surface-input px-3 py-2 text-foreground-soft transition hover:bg-surface-selected-strong active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <GoPlus size={16} className="stroke-1"/>
         </button>
@@ -120,7 +115,7 @@ export function ChecklistCard({
         <SortableContext items={checklist.map((item) => item.id)} strategy={verticalListSortingStrategy}>
           <div className="mt-3 flex max-h-80 flex-col gap-2 overflow-y-auto">
             {checklist.length === 0 ? (
-              <p className="text-sm text-white/40">Nenhum item no checklist.</p>
+              <p className="text-sm text-foreground-subtle">Nenhum item no checklist.</p>
             ) : (
               checklist.map((item) => (
                 <ChecklistRow
@@ -144,7 +139,7 @@ export function ChecklistCard({
         <button
           type="button"
           onClick={onClearCompleted}
-          className="mt-3 flex items-center gap-2 rounded-md bg-white/5 px-3 py-2 text-xs text-white/50 transition hover:bg-white/10 hover:text-white/70 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          className="mt-3 flex items-center gap-2 rounded-md bg-surface-hover px-3 py-2 text-xs text-muted-foreground transition hover:bg-surface-selected hover:text-foreground-secondary active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <FaTrash size={14} />
           Limpar concluídos
@@ -189,12 +184,12 @@ function ChecklistRow({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 rounded-md bg-card-input/80 px-2 py-2 opacity-100 transition-[opacity,transform] duration-150 ease-(--ease-out) starting:-translate-y-1 starting:opacity-0"
+      className="flex items-center gap-2 rounded-md bg-surface-input/80 px-2 py-2 opacity-100 transition-[opacity,transform] duration-150 ease-(--ease-out) starting:-translate-y-1 starting:opacity-0"
     >
       <button
         type="button"
         title="Arrastar pra reordenar"
-        className="flex-none cursor-grab touch-none text-white/20 transition hover:text-white/50 active:cursor-grabbing"
+        className="flex-none cursor-grab touch-none text-foreground-faint transition hover:text-muted-foreground active:cursor-grabbing"
         {...attributes}
         {...listeners}
       >
@@ -206,10 +201,10 @@ function ChecklistRow({
           type="checkbox"
           checked={item.done}
           onChange={(event) => onToggle(event.target.checked)}
-          className="peer h-4 w-4 appearance-none rounded-sm bg-white transition-colors duration-150 checked:bg-primary"
+          className="peer h-4 w-4 appearance-none rounded-sm bg-control-background transition-colors duration-150 checked:bg-primary"
         />
         <svg
-          className="pointer-events-none absolute inset-0 h-4 w-4 scale-50 p-0.5 text-white opacity-0 transition-[opacity,transform] duration-150 ease-(--ease-out) peer-checked:scale-100 peer-checked:opacity-100"
+          className="pointer-events-none absolute inset-0 h-4 w-4 scale-50 p-0.5 text-foreground opacity-0 transition-[opacity,transform] duration-150 ease-(--ease-out) peer-checked:scale-100 peer-checked:opacity-100"
           viewBox="0 0 16 16"
           fill="none"
         >
@@ -227,12 +222,12 @@ function ChecklistRow({
           onKeyDown={(event) => {
             if (event.key === "Enter") onCommitEdit();
           }}
-          className="min-w-0 flex-1 rounded bg-white/10 px-1.5 py-0.5 text-sm text-white/90 focus:outline-none focus:ring-1 focus:ring-white/20"
+          className="min-w-0 flex-1 rounded bg-surface-selected px-1.5 py-0.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-focus-ring"
         />
       ) : (
         <span
           className={`min-w-0 flex-1 truncate text-sm transition-colors duration-150 ${
-            item.done ? "text-white/40 line-through" : "text-white/90"
+            item.done ? "text-foreground-subtle line-through" : "text-foreground"
           }`}
         >
           {item.text}
@@ -243,7 +238,7 @@ function ChecklistRow({
         type="button"
         onClick={onStartEditing}
         title="Editar"
-        className="flex-none text-white/30 transition hover:text-white/70 active:scale-[0.9]"
+        className="flex-none text-foreground-disabled transition hover:text-foreground-secondary active:scale-[0.9]"
       >
         <FaRegEdit size={14} />
       </button>
@@ -251,7 +246,7 @@ function ChecklistRow({
         type="button"
         onClick={onDelete}
         title="Remover"
-        className="flex-none text-white/30 transition hover:text-status-attention active:scale-[0.9]"
+        className="flex-none text-foreground-disabled transition hover:text-attention active:scale-[0.9]"
       >
         <FaTrash size={12} />
       </button>
