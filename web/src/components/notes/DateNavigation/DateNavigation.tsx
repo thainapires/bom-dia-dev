@@ -26,7 +26,7 @@ export function DateNavigation({ date, isToday, onDateChange }: DateNavigationPr
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex items-center gap-1 rounded-lg bg-surface p-1">
+      <div className="flex items-center gap-1 rounded-lg bg-surface p-1 h-[var(--control-height)]">
         <DateNavigationButton
           title="Dia anterior"
           icon={<ArrowLeftIcon size={16} />}
@@ -47,11 +47,11 @@ export function DateNavigation({ date, isToday, onDateChange }: DateNavigationPr
       </div>
 
       {isToday ? (
-        <span className="flex-none rounded-md bg-primary/10 px-2 py-1.5 text-xs font-medium text-primary">
+        <span className="flex items-center rounded-md bg-primary/10 px-2 py-1.5 text-xs font-medium text-primary h-[var(--control-height)]">
           Hoje
         </span>
       ) : (
-        <Button variant="ghost" onClick={handleToday} className="h-8 rounded-md px-2 text-xs">
+        <Button variant="primary" onClick={handleToday} className="h-[var(--control-height)] rounded-md px-2 text-xs bg-surface ">
           Hoje
         </Button>
       )}
