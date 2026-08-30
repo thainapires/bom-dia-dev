@@ -1,7 +1,7 @@
 import { ChartIcon } from "@solar-icons/react/bold-duotone/chart";
 import { ClockCircleIcon } from "@solar-icons/react/bold-duotone/clock-circle";
 import { FireIcon } from "@solar-icons/react/bold-duotone/fire";
-import { MedalStarIcon } from "@solar-icons/react/bold-duotone/medal-star";
+import { StarIcon } from '@solar-icons/react/bold/star'
 import { CodeIcon } from "@solar-icons/react/linear/code";
 import { GraphNewIcon } from "@solar-icons/react/linear/graph-new";
 import { useState, type ComponentType, type ReactNode } from "react";
@@ -9,9 +9,11 @@ import { Cell, Pie, PieChart, Bar, BarChart, CartesianGrid, ResponsiveContainer,
 import { FaApple, FaDesktop, FaLinux, FaRedhat, FaUbuntu, FaWindows } from "react-icons/fa";
 import { VscVscode } from "react-icons/vsc";
 import { LuMonitor } from "react-icons/lu";
-import { SiAndroidstudio, SiCursor, SiIntellijidea, SiNeovim, SiPhpstorm, SiSublimetext, SiVim, SiWebstorm, SiXcode, SiZedindustries } from "react-icons/si";
+import { SiAndroidstudio, SiClaudecode, SiCodesandbox, SiCursor, SiIntellijidea, SiNeovim, SiPhpstorm, SiSublimetext, SiVim, SiWebstorm, SiXcode, SiZedindustries } from "react-icons/si";
 import type { WakatimeDailyActivity, WakatimeDurationRankItem, WakatimeStats, WakatimeTimeBucket } from "../types";
 import { Button, Card } from "./ui";
+import { BoltIcon } from "@solar-icons/react/bold/bolt";
+import { ChatSquare2Icon } from "@solar-icons/react/bold/chat-square-2";
 
 const CHART_COLORS = [
   "var(--color-primary)",
@@ -59,9 +61,9 @@ export function WakatimeKpiGrid({ data }: { data: WakatimeStats }) {
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
       <MetricCard icon={<ClockCircleIcon size={17} className="text-primary-light" />} label={`Tempo codando (${data.range})`} value={data.totalText} valueClassName="text-primary-light" detail="Total no período" />
       <MetricCard icon={<FireIcon size={17} className="text-pending" />} label="Média diária" value={data.dailyAverageText} valueClassName="text-pending" detail="Média por dia" />
-      <MetricCard icon={<MedalStarIcon size={17} className="text-info" />} label="Melhor dia" value={data.bestDay ? data.bestDay.text.split(" — ")[0] : "sem dados"} detail={data.bestDay?.text.split(" — ")[1]} />
-      <MetricCard icon={<FireIcon size={17} className="text-success" />} label="Sequência atual" value={`${data.currentStreak} ${data.currentStreak === 1 ? "dia" : "dias"}`} detail="dias consecutivos" />
-      {data.longestSession && <MetricCard icon={<ClockCircleIcon size={17} className="text-primary" />} label="Maior sessão" value={data.longestSession.text} detail="sessão mais longa" />}
+      <MetricCard icon={<StarIcon size={17} className="text-info" />} label="Melhor dia" value={data.bestDay ? data.bestDay.text.split(" — ")[0] : "sem dados"} detail={data.bestDay?.text.split(" — ")[1]} />
+      <MetricCard icon={<BoltIcon size={17} className="text-success" />} label="Sequência atual" value={`${data.currentStreak} ${data.currentStreak === 1 ? "dia" : "dias"}`} detail="dias consecutivos" />
+      {data.longestSession && <MetricCard icon={<ChatSquare2Icon size={17} className="text-primary" />} label="Maior sessão" value={data.longestSession.text} detail="sessão mais longa" />}
     </div>
   );
 }
@@ -242,6 +244,7 @@ function editorIcon(name: string): IconType {
   if (normalized.includes("sublime")) return SiSublimetext;
   if (normalized.includes("android studio")) return SiAndroidstudio;
   if (normalized.includes("xcode")) return SiXcode;
+  if (normalized.includes("claude code")) return SiClaudecode;
   return LuMonitor;
 }
 

@@ -204,7 +204,7 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
                             onMouseLeave={() => setHovered(null)}
                             onBlur={() => setHovered(null)}
                             title={`${session.project} · ${formatHourMinuteSecond(session.start)}–${formatHourMinuteSecond(session.end)} · ${formatDuration(session.durationSeconds)}`}
-                            className="absolute inset-y-1 cursor-pointer  border-0 p-0 outline-none transition-[filter] duration-150 hover:brightness-125 focus-visible:brightness-125 focus-visible:ring-2 focus-visible:ring-focus-ring-strong"
+                            className="absolute inset-y-1 cursor-pointer border-0 rounded-md p-0 outline-none transition-[filter] duration-150 hover:brightness-125 focus-visible:brightness-125 focus-visible:ring-2 focus-visible:ring-focus-ring-strong"
                             style={{
                               left: `${leftPct}%`,
                               width: `${widthPct}%`,
@@ -219,12 +219,6 @@ export function WakatimeTimelineCard({ timeline, onDateChange }: WakatimeTimelin
                 ))}
               </div>
 
-              {/* Fora do grid: um item com grid-row abrangendo todas as linhas
-                  implícitas ("1 / -1") fica ambíguo sem grid-template-rows
-                  explícito e descolava o auto-placement das linhas seguintes.
-                  Por isso o marcador de "agora" é posicionado à parte, alinhado
-                  à coluna da trilha via calc() (9.5rem = largura da coluna de
-                  rótulo, 0.75rem = gap-x-3). */}
               {nowPct !== null && (
                 <div
                   className="pointer-events-none absolute inset-y-0"
