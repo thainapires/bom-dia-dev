@@ -80,10 +80,27 @@ export interface TodoItem {
   createdAt: string;
 }
 
+
+export interface DailyIssueItem {
+  issueIid: number;
+  title: string;
+  url: string;
+  detail: string;
+}
+
+export interface DailyVisualStats {
+  commits: number;
+  pendencias: number;
+  issues: number;
+}
+
 export interface DailyNarrative {
   ontem: string;
   hoje: string;
   porIssue: IssueNarrativeItem[];
+  ontemItems?: DailyIssueItem[];
+  hojeItems?: DailyIssueItem[];
+  stats?: DailyVisualStats;
   geradoViaLLM: boolean;
 }
 
@@ -93,6 +110,9 @@ export interface DailyEntry {
   hoje: string;
   geradoViaLLM: boolean;
   criadoEm: string;
+  ontemItems?: DailyIssueItem[];
+  hojeItems?: DailyIssueItem[];
+  stats?: DailyVisualStats;
 }
 
 export interface ChecklistItem {

@@ -8,6 +8,7 @@ import type {
   GitlabMergeRequestDetail,
   GitlabMergeRequestSummary,
   GitlabNote,
+  GitlabStateEvent,
   GitlabTodo,
   GitlabUser,
 } from "./types";
@@ -77,7 +78,7 @@ export function getMrsToReview(username: string): Promise<GitlabMergeRequestSumm
 
 export function getAssignedIssues(username: string): Promise<GitlabIssue[]> {
   return glabApi<GitlabIssue[]>(
-    `issues?assignee_username=${username}&scope=all&state=opened&per_page=100`,
+    `issues?assignee_username=${username}&scope=all&state=all&order_by=updated_at&sort=desc&per_page=100`,
   );
 }
 
@@ -93,6 +94,15 @@ export function getIssueLabelEvents(
 ): Promise<GitlabLabelEvent[]> {
   return glabApi<GitlabLabelEvent[]>(
     `projects/${projectId}/issues/${iid}/resource_label_events?per_page=100`,
+  );
+}
+
+export function getIssueStateEvents(
+  projectId: number,
+  iid: number,
+): Promise<GitlabStateEvent[]> {
+  return glabApi<GitlabStateEvent[]>(
+    `projects/${projectId}/issues/${iid}/resource_state_events?per_page=100`,
   );
 }
 

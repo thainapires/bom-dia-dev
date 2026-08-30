@@ -60,6 +60,10 @@ export function fetchDailyDates(): Promise<string[]> {
   return fetch("/api/daily").then((res) => handleJson<string[]>(res));
 }
 
+export function generateDailyEntry(date: string): Promise<DailyEntry> {
+  return fetch(`/api/daily/${date}/generate`, { method: "POST" }).then((res) => handleJson<DailyEntry>(res));
+}
+
 export function fetchNotesDay(date: string): Promise<NotesDayResponse> {
   return fetch(`/api/notes/day/${date}`).then((res) => handleJson<NotesDayResponse>(res));
 }

@@ -6,6 +6,7 @@ function input(overrides: Partial<StandupInput> = {}): StandupInput {
   return {
     ontemActivities: [],
     porIssue: [],
+    issues: [],
     pendentes: { pronto: [], atencao: [], precisaRevisar: [] },
     ...overrides,
   };
@@ -14,7 +15,7 @@ function input(overrides: Partial<StandupInput> = {}): StandupInput {
 describe("buildPromptInput", () => {
   it("sinaliza claramente quando não há atividade nem pendência, pra não induzir a LLM a inventar conteúdo", () => {
     const text = buildPromptInput(input());
-    expect(text).toContain("Nenhuma atividade registrada no GitLab.");
+    expect(text).toContain("Nenhuma atividade comprovada no GitLab.");
     expect(text).toContain("Nada pendente no momento.");
   });
 
@@ -30,6 +31,7 @@ describe("buildPromptInput", () => {
       }),
     );
     expect(text).toContain("fix: bug X");
+    expect(text).toContain("2026-08-25T10:00:00Z");
     expect(text).toContain('Pronto pra merge: "Adiciona endpoint Y"');
     expect(text).toContain('Precisa de atenção (Pipeline falhando): "MR Z"');
     expect(text).toContain('Aguardando sua revisão: "MR W" (autor: Fulano)');
@@ -54,6 +56,71 @@ describe("generateViaHeuristica (fallback quando a LLM falha ou está indisponí
       }),
     );
     expect(result.ontem).toBe("Ontem eu fiz 2 commits e mergeei 1 MR.");
+  });
+
+  it("inclui issue relevante pra hoje sem transformar estado em evento", () => {
+    const text = buildPromptInput(
+      input({
+        issues: [
+          {
+            issueIid: 10,
+            projectId: 20,
+            title: "Issue em andamento",
+            url: "https://gitlab.com/x/y/-/issues/10",
+            currentStatus: "In progress",
+            statusAtPeriodStart: "In progress",
+            currentAssignees: ["thaina"],
+            isAssignedToMe: true,
+            wasAssignedBeforePeriod: true,
+            assignedDuringPeriod: [],
+            statusTransitions: [],
+            commentsDuringPeriod: [],
+            hasCommitDuringPeriod: false,
+            yesterdayFacts: [],
+            todayFacts: ["estado atual: In progress; pode continuar como trabalho em andamento"],
+            todayRelevance: "active",
+            priority: 60,
+          },
+        ],
+      }),
+    );
+
+    expect(text).toContain('"currentStatus":"In progress"');
+    expect(text).toContain('"wasAssignedBeforePeriod":true');
+    expect(text).not.toContain("peguei");
+    expect(text).not.toContain("comecei");
+  });
+
+  it("não envia corpo de comentários no payload da LLM", () => {
+    const text = buildPromptInput(
+      input({
+        issues: [
+          {
+            issueIid: 10,
+            projectId: 20,
+            title: "Issue comentada",
+            url: "https://gitlab.com/x/y/-/issues/10",
+            currentStatus: "In progress",
+            statusAtPeriodStart: "In progress",
+            currentAssignees: ["thaina"],
+            isAssignedToMe: true,
+            wasAssignedBeforePeriod: true,
+            assignedDuringPeriod: [],
+            statusTransitions: [],
+            commentsDuringPeriod: [{ createdAt: "2026-08-25T12:00:00Z" }],
+            hasCommitDuringPeriod: false,
+            yesterdayFacts: ["comentário registrado em 2026-08-25T12:00:00Z"],
+            todayFacts: [],
+            todayRelevance: "passive",
+            priority: 0,
+          },
+        ],
+      }),
+    );
+
+    expect(text).toContain("comentário registrado em 2026-08-25T12:00:00Z");
+    expect(text).not.toContain("body");
+    expect(text).not.toContain("descrição");
   });
 
   it("resume pendências de hoje", () => {

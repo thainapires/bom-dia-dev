@@ -5,6 +5,7 @@ import {
   getEvents,
   getIssueLabelEvents,
   getIssueNotes,
+  getIssueStateEvents,
   getMRDetail,
   getMergedMRs,
   getMergedMRsSince,
@@ -15,11 +16,12 @@ import {
   getOpenMRs,
   getTodos,
 } from "./gitlab";
-import { heuristicClassifier } from "./narrative";
+import { buildIssueNarrativeItems, buildIssueStandupFacts } from "./narrative";
 import { getOrCreateStandup } from "./standup";
 import type {
   ActivityItem,
   DashboardResponse,
+  DailyIssueItem,
   Desempenho,
   DesempenhoSemana,
   GitlabApprovals,
@@ -322,9 +324,10 @@ async function buildIssueActivity(
   username: string,
   range: { after: string; before: string },
 ): Promise<{ activity: Omit<IssueDayActivity, "hasCommit">; assignmentEvents: ActivityItem[] }> {
-  const [notes, labelEvents] = await Promise.all([
+  const [notes, labelEvents, stateEvents] = await Promise.all([
     getIssueNotes(issue.project_id, issue.iid),
     getIssueLabelEvents(issue.project_id, issue.iid),
+    getIssueStateEvents(issue.project_id, issue.iid),
   ]);
 
   const notesInRange = notes.filter((note) => isWithinRange(note.created_at, range));
@@ -343,8 +346,13 @@ async function buildIssueActivity(
       projectId: issue.project_id,
       title: issue.title,
       url: issue.web_url,
-      labelChanges: labelEvents.filter((change) => isWithinRange(change.created_at, range)),
+      currentLabels: issue.labels,
+      currentAssignees: issue.assignees.map((assignee) => assignee.username),
+      issueState: issue.state,
+      labelChanges: labelEvents,
       comments: notesInRange.filter((note) => !note.system),
+      assignmentEvents: notes.filter((note) => isAssignmentNoteForUser(note, username)),
+      stateEvents,
     },
     assignmentEvents,
   };
@@ -395,6 +403,22 @@ function mapEventToActivity(event: GitlabEvent): ActivityItem | null {
 // "/events" só reflete ações que a própria usuária executou — a aprovação
 // de terceiros no MR dela não aparece por lá. Por isso é sintetizada a
 // partir de `approved_by[].approved_at`, que a API de approvals já traz.
+
+function dailyIssueItemsFromFacts(
+  facts: Array<{ issueIid: number; title: string; url: string; yesterdayFacts: string[]; todayFacts: string[] }>,
+  key: "yesterdayFacts" | "todayFacts",
+): DailyIssueItem[] {
+  return facts
+    .filter((fact) => fact[key].length > 0)
+    .slice(0, 5)
+    .map((fact) => ({
+      issueIid: fact.issueIid,
+      title: fact.title,
+      url: fact.url,
+      detail: fact[key][0],
+    }));
+}
+
 function buildApprovalActivity(
   authored: Array<{ mr: GitlabMergeRequestSummary; approvals: GitlabApprovals }>,
   range: { after: string; before: string },
@@ -464,6 +488,7 @@ function buildDesempenho(
 
 export async function buildDashboard(
   dateRange?: { after: string; before: string },
+  options: { standupDate?: string; persistStandup?: boolean } = {},
 ): Promise<DashboardResponse> {
   const now = new Date();
   const range = dateRange ?? yesterdayRange(now);
@@ -529,7 +554,8 @@ export async function buildDashboard(
     ...build.activity,
     hasCommit: issueHasCommit(assignedIssues[index], events, range),
   }));
-  const porIssue = await heuristicClassifier(issueDayActivities);
+  const issueFacts = buildIssueStandupFacts(issueDayActivities, user.username, range);
+  const porIssue = buildIssueNarrativeItems(issueFacts);
 
   const approvalDates = await Promise.all(mergedMRs.map(firstApprovalDate));
 
@@ -559,19 +585,28 @@ export async function buildDashboard(
     .slice(0, 20);
 
   const desempenho = buildDesempenho(mrsCriados28d, mrsMergeados28d, now);
+  const ontemItems = dailyIssueItemsFromFacts(issueFacts, "yesterdayFacts");
+  const hojeItems = dailyIssueItemsFromFacts(issueFacts, "todayFacts");
+  const dailyStats = {
+    commits: ontem.filter((item) => item.kind === "commit").length,
+    pendencias: pronto.length + atencao.length + precisaRevisar.length + hojeItems.length,
+    issues: issueFacts.length,
+  };
 
   const standupResult = await getOrCreateStandup(
-    toDateStr(now),
+    options.standupDate ?? toDateStr(now),
     {
+      periodo: range,
       ontemActivities: ontem,
       porIssue,
+      issues: issueFacts,
       pendentes: {
         pronto: pronto.map((mr) => ({ title: mr.title })),
         atencao: atencao.map((mr) => ({ title: mr.title, motivoAtencao: mr.motivoAtencao })),
         precisaRevisar: precisaRevisar.map((mr) => ({ title: mr.title, author: mr.author })),
       },
     },
-    { persist: !dateRange },
+    { persist: options.persistStandup ?? !dateRange },
   );
 
   const summary = {
@@ -599,7 +634,7 @@ export async function buildDashboard(
     atencao,
     atividadeRecente,
     desempenho,
-    narrativa: { ...standupResult, porIssue },
+    narrativa: { ...standupResult, porIssue, ontemItems, hojeItems, stats: dailyStats },
     todos: todosRaw.map(mapTodoToItem),
   };
 }

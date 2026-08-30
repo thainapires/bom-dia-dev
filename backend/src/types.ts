@@ -57,6 +57,10 @@ export interface GitlabIssue {
   project_id: number;
   title: string;
   web_url: string;
+  state: "opened" | "closed";
+  labels: string[];
+  assignees: GitlabUser[];
+  updated_at: string;
 }
 
 export interface GitlabNote {
@@ -70,6 +74,11 @@ export interface GitlabLabelEvent {
   created_at: string;
   action: "add" | "remove";
   label: { name: string } | null;
+}
+
+export interface GitlabStateEvent {
+  created_at: string;
+  state: "opened" | "closed" | "reopened";
 }
 
 export interface GitlabTodo {
@@ -165,9 +174,14 @@ export interface IssueDayActivity {
   projectId: number;
   title: string;
   url: string;
+  currentLabels: string[];
+  currentAssignees: string[];
+  issueState: "opened" | "closed";
   hasCommit: boolean;
   labelChanges: GitlabLabelEvent[];
   comments: GitlabNote[];
+  assignmentEvents: GitlabNote[];
+  stateEvents: GitlabStateEvent[];
 }
 
 export interface IssueNarrativeItem {
@@ -179,6 +193,52 @@ export interface IssueNarrativeItem {
   categoria: IssueUpdateCategoria;
 }
 
+
+export type BoardStatus =
+  | "Blocked"
+  | "Sprint ready"
+  | "To do"
+  | "In progress"
+  | "For code review"
+  | "Code Review Failed"
+  | "For QA Deployment"
+  | "For QA Testing"
+  | "In Testing"
+  | "QA Testing Failed"
+  | "For Production Deployment"
+  | "For Production Testing"
+  | "Production Testing Failed"
+  | "Done"
+  | "Closed";
+
+export interface IssueStatusTransition {
+  from: BoardStatus | null;
+  to: BoardStatus;
+  timestamp: string;
+}
+
+export type IssueTodayRelevance = "active" | "attention" | "passive" | "none";
+
+export interface IssueStandupFact {
+  issueIid: number;
+  projectId: number;
+  title: string;
+  url: string;
+  currentStatus: BoardStatus | null;
+  statusAtPeriodStart: BoardStatus | null;
+  currentAssignees: string[];
+  isAssignedToMe: boolean;
+  wasAssignedBeforePeriod: boolean;
+  assignedDuringPeriod: string[];
+  statusTransitions: IssueStatusTransition[];
+  commentsDuringPeriod: Array<{ createdAt: string }>;
+  hasCommitDuringPeriod: boolean;
+  yesterdayFacts: string[];
+  todayFacts: string[];
+  todayRelevance: IssueTodayRelevance;
+  priority: number;
+}
+
 export interface TodoItem {
   id: number;
   text: string;
@@ -186,10 +246,27 @@ export interface TodoItem {
   createdAt: string;
 }
 
+
+export interface DailyIssueItem {
+  issueIid: number;
+  title: string;
+  url: string;
+  detail: string;
+}
+
+export interface DailyVisualStats {
+  commits: number;
+  pendencias: number;
+  issues: number;
+}
+
 export interface DailyNarrative {
   ontem: string;
   hoje: string;
   porIssue: IssueNarrativeItem[];
+  ontemItems?: DailyIssueItem[];
+  hojeItems?: DailyIssueItem[];
+  stats?: DailyVisualStats;
   // false quando a chamada à LLM falhou e o texto veio do fallback heurístico
   // (ver `standup.ts`).
   geradoViaLLM: boolean;
@@ -201,6 +278,9 @@ export interface DailyEntry {
   hoje: string;
   geradoViaLLM: boolean;
   criadoEm: string;
+  ontemItems?: DailyIssueItem[];
+  hojeItems?: DailyIssueItem[];
+  stats?: DailyVisualStats;
 }
 
 export interface DesempenhoSemana {
