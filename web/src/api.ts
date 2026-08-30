@@ -17,9 +17,21 @@ async function handleJson<T>(response: Response): Promise<T> {
   return response.json();
 }
 
-export async function fetchDashboard(options?: { forceRefresh?: boolean }): Promise<DashboardResponse> {
-  const url = options?.forceRefresh ? "/api/dashboard?refresh=true" : "/api/dashboard";
-  const response = await fetch(url);
+export async function fetchDashboard(options?: {
+  forceRefresh?: boolean;
+  performanceDays?: number;
+  performanceStart?: string;
+  performanceEnd?: string;
+}): Promise<DashboardResponse> {
+  const query = new URLSearchParams();
+  if (options?.forceRefresh) query.set("refresh", "true");
+  if (options?.performanceDays) query.set("performanceDays", String(options.performanceDays));
+  if (options?.performanceStart && options.performanceEnd) {
+    query.set("performanceStart", options.performanceStart);
+    query.set("performanceEnd", options.performanceEnd);
+  }
+  const queryString = query.toString();
+  const response = await fetch(queryString ? `/api/dashboard?${queryString}` : "/api/dashboard");
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.error ?? `Erro ao buscar dados (${response.status})`);

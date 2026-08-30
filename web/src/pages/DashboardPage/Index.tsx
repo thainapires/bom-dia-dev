@@ -17,31 +17,59 @@ import { RecentActivityCardSkeleton } from "../../components/skeletons/RecentAct
 import { Skeleton } from "../../components/skeletons/Skeleton";
 import { SummaryCardsSkeleton } from "../../components/skeletons/SummaryCardsSkeleton";
 import { useSettings } from "../../SettingsContext";
-import type { DashboardResponse, MrItem } from "../../types";
+import { addDays, toISODate } from "../../formatting";
+import type { DashboardResponse, MrItem, PerformanceRangeKey } from "../../types";
 import { CheckCircleIcon } from '@solar-icons/react/linear/check-circle'
 
 function applyEsquecidoThreshold(items: MrItem[], limite: number): MrItem[] {
   return items.map((item) => ({ ...item, esquecido: item.diasAberto >= limite }));
 }
 
+const PERFORMANCE_RANGE_OPTIONS: Array<{ value: PerformanceRangeKey; label: string }> = [
+  { value: "last_7_days", label: "Últimos 7 dias" },
+  { value: "last_14_days", label: "Últimos 14 dias" },
+  { value: "last_30_days", label: "Último mês" },
+  { value: "custom", label: "Customizado" },
+];
+
 export function DashboardPage() {
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [performanceRange, setPerformanceRange] = useState<PerformanceRangeKey>("last_7_days");
+  const [performanceStart, setPerformanceStart] = useState(() => addDays(toISODate(new Date()), -6));
+  const [performanceEnd, setPerformanceEnd] = useState(() => toISODate(new Date()));
   const { settings } = useSettings();
 
+  const hasValidPerformanceRange =
+    performanceRange !== "custom" ||
+    (performanceStart !== "" && performanceEnd !== "" && performanceStart <= performanceEnd);
+
   const load = useCallback(async (forceRefresh = false) => {
+    if (!hasValidPerformanceRange) return;
     setIsLoading(true);
     setError(null);
     try {
-      const dashboard = await fetchDashboard({ forceRefresh });
+      const dashboard = await fetchDashboard({
+        forceRefresh,
+        performanceDays:
+          performanceRange === "last_7_days"
+            ? 7
+            : performanceRange === "last_14_days"
+              ? 14
+              : performanceRange === "last_30_days"
+                ? 30
+                : undefined,
+        performanceStart: performanceRange === "custom" ? performanceStart : undefined,
+        performanceEnd: performanceRange === "custom" ? performanceEnd : undefined,
+      });
       setData(dashboard);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao buscar dados");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [hasValidPerformanceRange, performanceEnd, performanceRange, performanceStart]);
 
   useEffect(() => {
     load();
@@ -154,7 +182,17 @@ export function DashboardPage() {
 
             <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
               {visibleCards.atividadeRecente && <RecentActivityCard items={data.atividadeRecente} />}
-              <PerformanceCard desempenho={data.desempenho} />
+              <PerformanceCard
+                desempenho={data.desempenho}
+                range={performanceRange}
+                rangeOptions={PERFORMANCE_RANGE_OPTIONS}
+                customStart={performanceStart}
+                customEnd={performanceEnd}
+                onRangeChange={setPerformanceRange}
+                onCustomStartChange={setPerformanceStart}
+                onCustomEndChange={setPerformanceEnd}
+                isLoading={isLoading}
+              />
             </div>
           </div>
         </div>

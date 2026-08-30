@@ -18,17 +18,26 @@ estatísticas de tempo codando (Wakatime) — tudo escaneável.
 
   Também mostra revisões pendentes atribuídas a você (separadas por
   situação: precisa revisar, aguardando resposta sua/de outros, já
-  aprovado), tempo médio até merge e até a primeira aprovação, "seu
-  desempenho" (abertos x fechados e tempo médio de merge nas últimas duas
-  semanas), atividade recente estilo `git log --oneline` e seus to-dos do
-  GitLab.
+  aprovado), tempo médio até merge e até a primeira aprovação, atividade
+  recente estilo `git log --oneline` e seus to-dos do GitLab. O card "Seu
+  desempenho" tem período selecionável (7/14/30 dias ou customizado) e
+  compara, em dois painéis, MRs abertos x fechados e tempo médio até merge
+  entre o período atual e o anterior.
 - **Daily** — narrativa "o que fiz ontem / o que pretendo fazer hoje"
   gerada por LLM (via OpenRouter) a partir da atividade real no GitLab, com
-  fallback heurístico caso a LLM falhe. Fica com histórico por dia.
-- **Notas** — bloco de notas de texto livre + checklist, um registro por
-  dia, com autosave.
+  fallback heurístico caso a LLM falhe e histórico por dia. Cada item de
+  ontem/hoje linka direto pra issue correspondente no GitLab, com estatísticas
+  de commits/pendências/issues do dia.
+- **Notas** — bloco de notas com editor de texto rico (negrito, itálico,
+  sublinhado, listas, links) + checklist com reordenação por
+  drag-and-drop, um registro por dia com autosave, lista de notas recentes
+  (com paginação) e resumo do dia (tarefas totais/concluídas, progresso,
+  palavras escritas).
 - **Wakatime** — tempo codando por período (hoje, semana, mês, customizado),
-  linguagens mais usadas e timeline de sessões por projeto no dia.
+  timeline de sessões por projeto no dia, linguagens/projetos/categorias
+  mais usados, horário e dia da semana mais produtivos, sequência de dias
+  consecutivos codando, maior sessão do período, editores e sistemas
+  operacionais usados, e percentual de código assistido por IA.
 - **Configurações** — mostrar/ocultar cards do dashboard e ajustar o limite
   de dias pra um MR ser marcado como "esquecido" (preferências salvas no
   `localStorage` do navegador, não sincronizam entre dispositivos).
@@ -81,9 +90,10 @@ estatísticas de tempo codando (Wakatime) — tudo escaneável.
   Testes automatizados com Vitest.
 - **Frontend** (`web/`): Vite + React + TypeScript + Tailwind CSS v4
   (tema custom via `@theme`, sem `tailwind.config.js`) + `@solar-icons/react`
-  para ícones + `recharts` para os gráficos de desempenho +
-  `react-router-dom` para as rotas das abas. Fontes Inter (sans) e
-  JetBrains Mono (mono).
+  e `react-icons` para ícones + `recharts` para os gráficos de desempenho e
+  do Wakatime + `react-router-dom` para as rotas das abas + `@tiptap/react`
+  para o editor de texto rico das notas + `@dnd-kit` para o
+  drag-and-drop do checklist. Fontes Inter (sans) e JetBrains Mono (mono).
 - **Docker**: `docker-compose.yml` na raiz sobe os dois serviços
   (`backend` na porta 3001, `web` na porta 5173, proxy `/api` do Vite pro
   `backend`).
@@ -152,26 +162,32 @@ npm run migrate-to-turso --prefix backend
 
 ```
 backend/src/
-  glab.ts           # wrapper único de chamadas ao binário glab (glabApi<T>)
-  gitlab.ts         # funções de alto nível sobre a API do GitLab (MRs, aprovações, eventos, issues, todos...)
-  dashboard.ts      # monta o payload final: classificação de MRs, desempenho, atividade recente, narrativa do dia
-  narrative.ts      # classificador heurístico de atividade em issues (por palavra-chave)
-  standup.ts        # narrativa "ontem/hoje" via LLM (OpenRouter), com fallback heurístico e persistência
-  wakatime.ts       # integração com a API do Wakatime (stats + timeline)
-  db.ts             # client do Turso/libSQL + runner de migrations
-  db/migrations/    # migrations .sql, aplicadas automaticamente no boot
+  glab.ts                  # wrapper único de chamadas ao binário glab (glabApi<T>)
+  gitlab.ts                # funções de alto nível sobre a API do GitLab (MRs, aprovações, eventos, issues, todos...)
+  dashboard.ts             # monta o payload final: classificação de MRs, desempenho, atividade recente, narrativa do dia
+  narrative.ts             # classificador heurístico de atividade em issues (por palavra-chave)
+  standup.ts               # narrativa "ontem/hoje" via LLM (OpenRouter), com fallback heurístico e persistência
+  wakatime.ts              # integração com a API do Wakatime (stats + timeline)
+  wakatimeCalculations.ts  # cálculos derivados dos dados do Wakatime (streaks, horário/dia mais produtivo, AI coding...)
+  db.ts                    # client do Turso/libSQL (lazy, não conecta em import) + runner de migrations
+  db/migrations/           # migrations .sql, aplicadas automaticamente no boot
   routes/
-    notes.ts        # notas + checklist por dia
-    daily.ts        # histórico e detalhe da daily gerada
-  index.ts          # rotas: /api/dashboard, /api/wakatime(/timeline), /api/notes, /api/daily
+    notes.ts               # notas + checklist por dia
+    daily.ts               # histórico e detalhe da daily gerada
+  index.ts                 # rotas: /api/dashboard, /api/wakatime(/timeline), /api/notes, /api/daily
 scripts/
   migrate-to-turso.ts  # script de uso único: copia dados de um SQLite local pro Turso
 
 web/src/
-  App.tsx                # rotas (react-router-dom): /, /daily, /notas, /wakatime, /configuracoes
+  App.tsx                 # rotas (react-router-dom): /, /daily, /notas, /wakatime, /configuracoes
   SettingsContext.tsx     # preferências do usuário (localStorage, sem backend)
-  components/             # Sidebar, Header, cards do dashboard/daily/wakatime, skeletons...
-  pages/                  # DashboardPage, DailyPage, NotesPage, WakatimePage, SettingsPage
+  formatting.ts           # helpers de data/hora/duração compartilhados entre páginas
+  components/
+    ui/                     # kit compartilhado: Button, Card, Input/Select, IconButton, Alert, Page/PageHeader
+    notes/                  # editor de texto rico, checklist (drag-and-drop), navegação de data, notas recentes
+    Sidebar.tsx, Header.tsx, PerformanceCard.tsx, WakatimeInsightCards.tsx, WakatimeTimelineCard.tsx, skeletons/...
+  pages/
+    DashboardPage/, DailyPage/, NotesPage/, WakatimePage/, SettingsPage/   # cada página em pasta própria (Index.tsx + hooks locais, ex. useNoteEditor/useChecklist/useRecentNotes)
 ```
 
 ## Importante: autenticação com o GitLab

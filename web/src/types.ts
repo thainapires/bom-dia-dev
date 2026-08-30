@@ -38,6 +38,8 @@ export interface ActivityItem {
   createdAt: string;
 }
 
+export type PerformanceRangeKey = "last_7_days" | "last_14_days" | "last_30_days" | "custom";
+
 export interface DesempenhoSemana {
   inicio: string;
   abertos: number;
@@ -47,9 +49,12 @@ export interface DesempenhoSemana {
 
 export interface Desempenho {
   periodoDias: number;
+  periodoLabel: string;
   totalAbertos: number;
   totalFechados: number;
   tempoMedioMergeDiasAtual: string;
+  tempoMedioMergeDiasAtualValor: number | null;
+  tempoMedioMergeDiasAnteriorValor: number | null;
   variacaoPercentual: number | null;
   seriePorSemana: DesempenhoSemana[];
 }
